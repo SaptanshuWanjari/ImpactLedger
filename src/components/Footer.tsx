@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Heart, Mail, Phone, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
 const footerLinks = [
   {
@@ -40,7 +40,7 @@ export default function Footer() {
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
                 <Heart size={24} fill="currentColor" />
               </div>
-              <span className="text-xl font-display font-extrabold tracking-tighter">LNMS</span>
+              <span className="text-xl font-display font-extrabold tracking-tighter">Impact Lodger</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               Empowering Lions International to manage stewardship with radical transparency and modern efficiency.

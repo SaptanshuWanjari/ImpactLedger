@@ -6,7 +6,7 @@ import { Globe, Heart, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CampaignCardProps {
-  id: number;
+  id: string;
   title: string;
   location: string;
   progress: number;
@@ -14,7 +14,7 @@ interface CampaignCardProps {
   raised: string;
   image: string;
   category: string;
-  urgency: "High" | "Medium" | "Low";
+  urgency: string;
 }
 
 export default function CampaignCard({

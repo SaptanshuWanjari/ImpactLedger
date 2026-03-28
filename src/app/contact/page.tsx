@@ -29,7 +29,7 @@ export default function ContactPage() {
             <p className="text-accent font-bold uppercase tracking-widest text-xs">Get in Touch</p>
             <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">
               Connect with <br />
-              <span className="text-accent">LNMS.</span>
+              <span className="text-accent">Impact Lodger.</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
               Have questions about our stewardship system or want to partner with us? Our global team is ready to assist.
@@ -95,7 +95,7 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 {[
                   { title: "Email Us", value: "stewardship@lnms.org", icon: Mail, color: "bg-accent/10 text-accent" },
-                  { title: "Call Us", value: "+1 (800) 555-LNMS", icon: Phone, color: "bg-green-50 text-green-600" },
+                  { title: "Call Us", value: "+1 (800) 555-Impact Lodger", icon: Phone, color: "bg-green-50 text-green-600" },
                   { title: "Global HQ", value: "San Francisco, CA", icon: MapPin, color: "bg-blue-50 text-blue-600" },
                   { title: "Network Status", value: "All Systems Operational", icon: ShieldCheck, color: "bg-purple-50 text-purple-600" },
                 ].map((item) => (
@@ -118,7 +118,7 @@ export default function ContactPage() {
                     "How do I track my donation in real-time?",
                     "What percentage of my donation goes to the field?",
                     "How can I become a verified volunteer?",
-                    "Is my data secure on the LNMS ledger?",
+                    "Is my data secure on the Impact Lodger ledger?",
                   ].map((q) => (
                     <div key={q} className="no-line-card p-6 flex items-center justify-between group hover:border-accent transition-all cursor-pointer">
                       <div className="flex items-center gap-4">
@@ -139,7 +139,7 @@ export default function ContactPage() {
                   <h4 className="font-display font-bold text-xl tracking-tight">Verified Stewardship</h4>
                 </div>
                 <p className="text-sm text-primary-foreground/70 leading-relaxed">
-                  LNMS is committed to 100% transparency. If you have any concerns about fund allocation or impact verification, please contact our transparency officer directly.
+                  Impact Lodger is committed to 100% transparency. If you have any concerns about fund allocation or impact verification, please contact our transparency officer directly.
                 </p>
                 <button className="text-xs font-bold text-accent uppercase tracking-widest hover:underline flex items-center gap-2">
                   Transparency Policy <ArrowRight size={14} />

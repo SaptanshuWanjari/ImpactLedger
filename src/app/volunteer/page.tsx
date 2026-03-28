@@ -2,44 +2,24 @@
 
 import VolunteerSidebar from "@/components/VolunteerSidebar";
 import { motion } from "framer-motion";
-import { 
-  HandHelping, 
-  TrendingUp, 
-  ClipboardList, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  WifiOff, 
-  RefreshCw,
-  Camera,
-  FileText,
-  Send,
-  ArrowRight
-} from "lucide-react";
+import { HandHelping, TrendingUp, ClipboardList, MapPin, Clock, CheckCircle2, WifiOff, RefreshCw, Send } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { fetchJson, useApiData } from "@/lib/api/client";
 
-const volunteerStats = [
-  { label: "Hours Logged", value: "124", icon: Clock },
-  { label: "Missions Joined", value: "8", icon: HandHelping },
-  { label: "Impact Score", value: "98", icon: TrendingUp },
-  { label: "Certifications", value: "3", icon: CheckCircle2 },
-];
-
-const assignments = [
-  { id: 1, title: "Clean Water Site Survey", location: "Sector 4, Kenya", status: "Active", urgency: "High" },
-  { id: 2, title: "Sanitation Workshop", location: "Community Center", status: "Upcoming", urgency: "Medium" },
-  { id: 3, title: "Supply Distribution", location: "Regional Hub", status: "Completed", urgency: "High" },
-];
-
-const syncQueue = [
-  { id: 1, type: "Survey Form", status: "Pending Sync", date: "10 mins ago" },
-  { id: 2, type: "Photo Log", status: "Pending Sync", date: "15 mins ago" },
-];
+type VolunteerDashboard = {
+  volunteerName: string;
+  stats: { hoursLogged: string; missionsJoined: string; impactScore: string; certifications: string };
+  assignments: { id: string; title: string; location: string; status: string; urgency: string; deadline: string }[];
+  syncQueue: { id: number; type: string; status: string; date: string }[];
+};
 
 export default function VolunteerHub() {
+  const { data, isLoading } = useApiData<VolunteerDashboard>("/api/volunteer/dashboard?volunteerEmail=sarah@example.com");
   const [isOnline, setIsOnline] = useState(true);
+  const [reportNotes, setReportNotes] = useState("");
+  const [reportMetric, setReportMetric] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -52,181 +32,94 @@ export default function VolunteerHub() {
     };
   }, []);
 
+  async function submitReport() {
+    try {
+      await fetchJson("/api/volunteer/assignments", {
+        method: "POST",
+        body: JSON.stringify({ volunteerEmail: "sarah@example.com", impactMetric: Number(reportMetric), notes: reportNotes }),
+      });
+      setMessage("Report submitted.");
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
+  }
+
+  const volunteerStats = [
+    { label: "Hours Logged", value: data?.stats.hoursLogged || "0", icon: Clock },
+    { label: "Missions Joined", value: data?.stats.missionsJoined || "0", icon: HandHelping },
+    { label: "Impact Score", value: data?.stats.impactScore || "0", icon: TrendingUp },
+    { label: "Certifications", value: data?.stats.certifications || "0", icon: CheckCircle2 },
+  ];
+
   return (
     <div className="flex min-h-screen bg-background">
       <VolunteerSidebar />
-      
       <main className="flex-grow p-8 space-y-8">
-        {/* Offline Warning */}
         {!isOnline && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center justify-between"
-          >
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-3 text-red-600">
               <WifiOff size={20} />
-              <div className="space-y-0.5">
-                <p className="text-sm font-bold">Offline Mode Active</p>
-                <p className="text-xs">Changes will be saved locally and synced when you're back online.</p>
-              </div>
+              <p className="text-sm font-bold">Offline Mode Active</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">2 items in queue</span>
-              <RefreshCw size={16} className="text-red-400 animate-spin" />
-            </div>
+            <RefreshCw size={16} className="text-red-400 animate-spin" />
           </motion.div>
         )}
 
-        {/* Header */}
-        <header className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-display font-extrabold tracking-tight">Volunteer Impact</h1>
-            <p className="text-sm text-muted-foreground">Welcome back, Sarah. Your field work is essential to our mission.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="btn-primary flex items-center gap-2 py-2 px-4 text-sm bg-green-600 hover:bg-green-700">
-              <ClipboardList size={18} /> New Field Report
-            </button>
-          </div>
+        <header>
+          <h1 className="text-3xl font-display font-extrabold tracking-tight">Volunteer Impact</h1>
+          <p className="text-sm text-muted-foreground">Welcome back, {data?.volunteerName || "Volunteer"}.</p>
         </header>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {volunteerStats.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="no-line-card p-6"
-            >
-              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4">
-                <stat.icon size={20} />
-              </div>
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} className="no-line-card p-6">
+              <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4"><stat.icon size={20} /></div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{stat.label}</p>
               <p className="text-2xl font-display font-extrabold tracking-tight">{stat.value}</p>
             </motion.div>
           ))}
         </div>
 
-        {/* Assignments and Sync Queue */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Active Assignments */}
           <div className="lg:col-span-2 no-line-card p-6">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-display font-bold text-xl">Active Assignments</h3>
-              <MapPin className="text-muted-foreground" size={18} />
-            </div>
+            <div className="flex items-center justify-between mb-8"><h3 className="font-display font-bold text-xl">Active Assignments</h3><MapPin className="text-muted-foreground" size={18} /></div>
             <div className="space-y-4">
-              {assignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl group hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center",
-                      assignment.status === "Active" ? "bg-green-100 text-green-600" : 
-                      assignment.status === "Upcoming" ? "bg-amber-100 text-amber-600" : "bg-muted text-muted-foreground"
-                    )}>
-                      <ClipboardList size={20} />
-                    </div>
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Loading assignments...</p>
+              ) : (
+                (data?.assignments || []).map((assignment) => (
+                  <div key={assignment.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl">
                     <div>
                       <p className="text-sm font-bold">{assignment.title}</p>
-                      <p className="text-xs text-muted-foreground">{assignment.location}</p>
+                      <p className="text-xs text-muted-foreground">{assignment.location} • Due {assignment.deadline}</p>
                     </div>
+                    <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full", assignment.urgency === "High" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600")}>{assignment.urgency} Urgency</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full",
-                      assignment.urgency === "High" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"
-                    )}>
-                      {assignment.urgency} Urgency
-                    </div>
-                    <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
-                      <ArrowRight size={18} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
-          {/* Sync Queue */}
           <div className="no-line-card p-6">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-display font-bold text-xl">Sync Queue</h3>
-              <RefreshCw className={cn("text-muted-foreground", !isOnline && "animate-spin")} size={18} />
-            </div>
-            <div className="space-y-6">
-              {syncQueue.map((item) => (
-                <div key={item.id} className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                    {item.type === "Survey Form" ? <FileText size={16} /> : <Camera size={16} />}
-                  </div>
-                  <div className="flex-grow space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-bold">{item.type}</p>
-                      <span className="text-[10px] text-muted-foreground">{item.date}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <AlertCircle size={12} className="text-amber-500" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">{item.status}</span>
-                    </div>
-                  </div>
+            <div className="flex items-center justify-between mb-8"><h3 className="font-display font-bold text-xl">Sync Queue</h3><RefreshCw className={cn("text-muted-foreground", !isOnline && "animate-spin")} size={18} /></div>
+            <div className="space-y-4">
+              {(data?.syncQueue || []).map((item) => (
+                <div key={item.id} className="flex items-center justify-between">
+                  <p className="text-sm font-bold">{item.type}</p>
+                  <span className="text-[10px] text-muted-foreground">{item.status}</span>
                 </div>
               ))}
-              {syncQueue.length === 0 && (
-                <div className="text-center py-10 space-y-2">
-                  <CheckCircle2 size={32} className="mx-auto text-green-500" />
-                  <p className="text-sm font-bold">All data synced.</p>
-                  <p className="text-xs text-muted-foreground">Your field reports are up to date.</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* Field Form Submission Placeholder */}
         <div className="no-line-card p-8 bg-white border border-muted">
-          <div className="max-w-2xl mx-auto space-y-8">
-            <div className="text-center space-y-2">
-              <h3 className="text-2xl font-display font-bold">Quick Field Report</h3>
-              <p className="text-sm text-muted-foreground">Submit impact data directly from the field. Works offline.</p>
-            </div>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Assignment</label>
-                  <select className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-green-500/20 transition-all">
-                    <option>Clean Water Site Survey</option>
-                    <option>Sanitation Workshop</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Impact Metric</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 50 families" 
-                    className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-green-500/20 transition-all"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Field Notes</label>
-                <textarea 
-                  rows={4}
-                  placeholder="Describe the impact or any challenges encountered..." 
-                  className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-green-500/20 transition-all resize-none"
-                />
-              </div>
-              <div className="flex items-center gap-4">
-                <button className="flex-grow btn-primary bg-green-600 hover:bg-green-700 flex items-center justify-center gap-2">
-                  Submit Report <Send size={18} />
-                </button>
-                <button className="p-3 bg-muted rounded-xl text-muted-foreground hover:text-primary transition-colors">
-                  <Camera size={24} />
-                </button>
-              </div>
-            </div>
+          <h3 className="text-2xl font-display font-bold mb-4">Quick Field Report</h3>
+          <div className="space-y-4">
+            <input type="number" value={reportMetric} onChange={(e) => setReportMetric(e.target.value)} className="w-full px-4 py-3 bg-muted/30 rounded-xl" placeholder="Impact metric" />
+            <textarea rows={4} value={reportNotes} onChange={(e) => setReportNotes(e.target.value)} className="w-full px-4 py-3 bg-muted/30 rounded-xl" placeholder="Field notes" />
+            <button onClick={submitReport} className="btn-primary bg-green-600 hover:bg-green-700 flex items-center gap-2">Submit Report <Send size={18} /></button>
+            {message && <p className="text-sm text-muted-foreground">{message}</p>}
           </div>
         </div>
       </main>

@@ -57,7 +57,7 @@ export default function ImpactPage() {
               <span className="text-accent">Impact.</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              LNMS provides a real-time, verified view of how every dollar is allocated and the direct impact it creates across the globe.
+              Impact Lodger provides a real-time, verified view of how every dollar is allocated and the direct impact it creates across the globe.
             </p>
           </div>
 
@@ -145,7 +145,7 @@ export default function ImpactPage() {
             </div>
             <div className="max-w-3xl space-y-8 relative z-10">
               <h2 className="text-5xl font-display font-extrabold tracking-tighter leading-none">
-                The LNMS <br />
+                The Impact Lodger <br />
                 Transparency Promise.
               </h2>
               <p className="text-xl text-primary-foreground/70 leading-relaxed">

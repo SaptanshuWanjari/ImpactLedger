@@ -34,7 +34,7 @@ export default function AdminSidebar() {
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
           <Heart size={18} fill="currentColor" />
         </div>
-        <span className="text-lg font-display font-extrabold tracking-tighter">LNMS Admin</span>
+        <span className="text-lg font-display font-extrabold tracking-tighter">Impact Lodger Admin</span>
       </div>
 
       <nav className="flex-grow space-y-2">

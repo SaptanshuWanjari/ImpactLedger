@@ -1,0 +1,1 @@
+# ImpactLedger Supabase Setup
