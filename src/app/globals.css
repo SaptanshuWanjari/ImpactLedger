@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #F7F7F7;
+  --color-foreground: #141414;
+
+  --color-primary: #141414;
+  --color-primary-foreground: #F7F7F7;
+
+  --color-accent: #00338D;
+  --color-accent-foreground: #FFFFFF;
+
+  --color-muted: #E5E5E5;
+  --color-muted-foreground: #737373;
+
+  --color-border: #E5E5E5;
+  --color-input: #E5E5E5;
+  --color-ring: #141414;
+
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+
+  .no-line-card {
+    @apply bg-white rounded-lg p-6 transition-colors hover:bg-muted/50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium transition-transform hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply border border-primary text-primary px-6 py-3 rounded-full font-medium transition-all hover:bg-primary hover:text-primary-foreground;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}

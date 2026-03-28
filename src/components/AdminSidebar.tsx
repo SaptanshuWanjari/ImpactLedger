@@ -1,0 +1,77 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { 
+  LayoutDashboard, 
+  Globe, 
+  Users, 
+  FileText, 
+  Settings, 
+  LogOut, 
+  ShieldCheck, 
+  Heart,
+  PieChart,
+  Bell
+} from "lucide-react";
+
+const sidebarLinks = [
+  { name: "Overview", href: "/admin", icon: LayoutDashboard },
+  { name: "Campaigns", href: "/admin/campaigns", icon: Globe },
+  { name: "Donors", href: "/admin/donors", icon: Users },
+  { name: "Reports", href: "/admin/reports", icon: FileText },
+  { name: "Analytics", href: "/admin/analytics", icon: PieChart },
+  { name: "Operations", href: "/admin/operations", icon: ShieldCheck },
+];
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="w-64 bg-white border-r border-muted h-screen sticky top-0 flex flex-col p-6">
+      <div className="flex items-center gap-2 mb-12">
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+          <Heart size={18} fill="currentColor" />
+        </div>
+        <span className="text-lg font-display font-extrabold tracking-tighter">LNMS Admin</span>
+      </div>
+
+      <nav className="flex-grow space-y-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4 px-3">Main Menu</p>
+        {sidebarLinks.map((link) => (
+          <Link
+            key={link.name}
+            href={link.href}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+              pathname === link.href 
+                ? "bg-accent/10 text-accent" 
+                : "text-muted-foreground hover:bg-muted hover:text-primary"
+            )}
+          >
+            <link.icon size={18} />
+            {link.name}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="pt-6 border-t border-muted space-y-2">
+        <Link
+          href="/admin/settings"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-all"
+        >
+          <Settings size={18} />
+          Settings
+        </Link>
+        <Link
+          href="/"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+        >
+          <LogOut size={18} />
+          Exit Admin
+        </Link>
+      </div>
+    </aside>
+  );
+}
