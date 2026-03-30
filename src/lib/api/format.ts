@@ -1,9 +1,9 @@
-const DEFAULT_CURRENCY = "USD";
+const DEFAULT_CURRENCY = "INR";
 
 export function formatCurrency(amount: number | string, currency = DEFAULT_CURRENCY) {
   const numericAmount = typeof amount === "number" ? amount : Number(amount);
 
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency,
     maximumFractionDigits: 2,

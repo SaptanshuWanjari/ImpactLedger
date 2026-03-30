@@ -1,7 +1,7 @@
 "use client";
 
 import DonorSidebar from "@/components/DonorSidebar";
-import { Plus, Search, Download, TrendingUp, Calendar, CheckCircle2, Receipt } from "lucide-react";
+import { Plus, ExternalLink, TrendingUp, Calendar, CheckCircle2, Receipt, Clock3, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useApiData } from "@/lib/api/client";
 
@@ -12,6 +12,8 @@ type Donation = {
   amount: string;
   method: string;
   status: string;
+  rawStatus?: string;
+  receiptUrl?: string | null;
   impact: string;
 };
 
@@ -38,8 +40,8 @@ export default function DonorDonationsPage() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="no-line-card p-6 space-y-2"><TrendingUp size={20} className="text-accent" /><p className="text-xs uppercase">Total Stewardship</p><p className="text-2xl font-display font-extrabold">{donations.reduce((sum, d) => sum + Number(d.amount.replace(/[^0-9.]/g, "")), 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}</p></div>
-          <div className="no-line-card p-6 space-y-2"><CheckCircle2 size={20} className="text-green-600" /><p className="text-xs uppercase">Completed</p><p className="text-2xl font-display font-extrabold">{donations.length}</p></div>
+          <div className="no-line-card p-6 space-y-2"><TrendingUp size={20} className="text-accent" /><p className="text-xs uppercase">Total Stewardship</p><p className="text-2xl font-display font-extrabold">{donations.reduce((sum, d) => sum + Number(d.amount.replace(/[^0-9.]/g, "")), 0).toLocaleString("en-IN", { style: "currency", currency: "INR" })}</p></div>
+          <div className="no-line-card p-6 space-y-2"><CheckCircle2 size={20} className="text-green-600" /><p className="text-xs uppercase">Completed</p><p className="text-2xl font-display font-extrabold">{donations.filter((d) => (d.rawStatus || "").toLowerCase() === "succeeded").length}</p></div>
           <div className="no-line-card p-6 space-y-2"><Calendar size={20} className="text-blue-600" /><p className="text-xs uppercase">Next Donation</p><p className="text-2xl font-display font-extrabold">TBD</p></div>
           <div className="no-line-card p-6 space-y-2"><Receipt size={20} className="text-purple-600" /><p className="text-xs uppercase">Tax Receipts</p><p className="text-2xl font-display font-extrabold">Ready</p></div>
         </div>
@@ -53,12 +55,13 @@ export default function DonorDonationsPage() {
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Date</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Campaign</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Amount</th>
+                  <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-center">Status</th>
                   <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-center">Receipt</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-muted">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="px-6 py-8 text-center">Loading...</td></tr>
+                  <tr><td colSpan={6} className="px-6 py-8 text-center">Loading...</td></tr>
                 ) : (
                   donations.map((donation) => (
                     <tr key={donation.id} className="group hover:bg-muted/20 transition-colors">
@@ -66,7 +69,23 @@ export default function DonorDonationsPage() {
                       <td className="px-6 py-4 text-sm text-muted-foreground">{donation.date}</td>
                       <td className="px-6 py-4"><p className="text-sm font-bold">{donation.campaign}</p><p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{donation.method}</p></td>
                       <td className="px-6 py-4 text-right"><p className="text-sm font-display font-extrabold text-primary">{donation.amount}</p></td>
-                      <td className="px-6 py-4 text-center"><button className="p-2 text-muted-foreground hover:text-accent transition-colors" title="Download Receipt"><Download size={18} /></button></td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-muted/30">
+                          {(donation.rawStatus || "").toLowerCase() === "succeeded" && <CheckCircle2 size={12} className="text-green-600" />}
+                          {(donation.rawStatus || "").toLowerCase() === "pending" && <Clock3 size={12} className="text-amber-600" />}
+                          {(donation.rawStatus || "").toLowerCase() === "failed" && <AlertCircle size={12} className="text-red-600" />}
+                          {donation.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {donation.receiptUrl ? (
+                          <a href={donation.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline text-xs font-bold">
+                            View <ExternalLink size={14} />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Pending</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

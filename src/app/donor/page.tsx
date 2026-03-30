@@ -16,7 +16,7 @@ type DonorDashboard = {
     nextMilestone: string;
   };
   allocation: { name: string; value: number; color: string }[];
-  donationHistory: { id: string; campaign: string; amount: string; date: string; status: string }[];
+  donationHistory: { id: string; campaign: string; amount: string; date: string; status: string; rawStatus?: string }[];
   impactTimeline: { date: string; event: string; location: string; impact: string }[];
 };
 
@@ -116,7 +116,12 @@ export default function DonorPortal() {
                       <td className="py-4 text-sm font-medium">{donation.campaign}</td>
                       <td className="py-4 text-sm font-bold">{donation.amount}</td>
                       <td className="py-4 text-sm text-muted-foreground">{donation.date}</td>
-                      <td className="py-4"><span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase tracking-widest"><CheckCircle2 size={10} /> {donation.status}</span></td>
+                      <td className="py-4">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-muted/30">
+                          <CheckCircle2 size={10} className={(donation.rawStatus || "").toLowerCase() === "succeeded" ? "text-green-600" : "text-muted-foreground"} />
+                          {donation.status}
+                        </span>
+                      </td>
                     </tr>
                   ))
                 )}

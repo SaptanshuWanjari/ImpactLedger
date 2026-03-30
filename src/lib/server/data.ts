@@ -146,7 +146,7 @@ export async function getRecentDonations(donorEmail = DEFAULT_DONOR_EMAIL, limit
 
   const { data, error } = await supabase
     .from("donations")
-    .select("id,amount,currency,payment_method,status,donated_at,campaigns(title)")
+    .select("id,amount,currency,payment_method,status,receipt_url,donated_at,campaigns(title)")
     .eq("tenant_id", tenantId)
     .eq("donor_email", donorEmail)
     .order("donated_at", { ascending: false })
@@ -162,7 +162,9 @@ export async function getRecentDonations(donorEmail = DEFAULT_DONOR_EMAIL, limit
     amount: formatCurrency(donation.amount, donation.currency),
     amountValue: Number(donation.amount || 0),
     method: donation.payment_method || "Card",
+    rawStatus: donation.status,
     status: titleCase(donation.status),
+    receiptUrl: donation.receipt_url || null,
     impact: "Impact verified",
   }));
 }

@@ -48,14 +48,14 @@ export default function DonatePage() {
     return fromCustom > 0 ? fromCustom : fromSelected;
   }, [selectedAmount, customAmount]);
 
-  const finalAmountLabel = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountNumber || 0);
+  const finalAmountLabel = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amountNumber || 0);
 
   async function submitDonation() {
     setSubmitting(true);
     setResultMessage(null);
 
     try {
-      await fetchJson<{ donation: { id: string } }>("/api/donations", {
+      const response = await fetchJson<{ checkoutUrl: string; donationId: string }>("/api/payments/checkout-session", {
         method: "POST",
         body: JSON.stringify({
           fullName,
@@ -63,11 +63,10 @@ export default function DonatePage() {
           amount: amountNumber,
           campaignId: campaignId === "general" ? null : campaignId,
           isAnonymous,
-          paymentMethod: paymentMethods.find((m) => m.id === selectedMethod)?.name,
         }),
       });
 
-      setResultMessage("Donation created. Finance team can now reconcile it through webhook flow.");
+      window.location.href = response.checkoutUrl;
     } catch (error) {
       setResultMessage((error as Error).message);
     } finally {
@@ -213,7 +212,7 @@ export default function DonatePage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold">Secure Verification</p>
-                  <p className="text-xs text-muted-foreground">Donation intent is persisted and can be reconciled through webhooks.</p>
+                  <p className="text-xs text-muted-foreground">Stripe Checkout securely handles payment and webhook verification.</p>
                 </div>
               </div>
             </div>
