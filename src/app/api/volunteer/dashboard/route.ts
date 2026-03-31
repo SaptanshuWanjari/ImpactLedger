@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getVolunteerDashboard } from "@/lib/server/data";
+import { NextResponse } from "next/server";
+import { getVolunteerDashboardForCurrentUser } from "@/lib/server/data";
+import { AuthHttpError, requireAuthContext } from "@/lib/server/auth";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const email = request.nextUrl.searchParams.get("volunteerEmail") || undefined;
-    const data = await getVolunteerDashboard(email);
+    await requireAuthContext(["volunteer", "org_admin"]);
+    const data = await getVolunteerDashboardForCurrentUser();
     return NextResponse.json(data);
   } catch (error) {
+    if (error instanceof AuthHttpError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

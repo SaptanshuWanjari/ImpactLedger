@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { fetchJson } from "@/lib/api/client";
@@ -28,7 +28,7 @@ function formatAmount(amount: number, currency: string) {
   }).format(amount || 0);
 }
 
-export default function DonateSuccessPage() {
+function DonateSuccessPageContent() {
   const searchParams = useSearchParams();
   const donationId = searchParams.get("donationId");
 
@@ -108,5 +108,13 @@ export default function DonateSuccessPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function DonateSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DonateSuccessPageContent />
+    </Suspense>
   );
 }

@@ -1,9 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency, formatShortDate, titleCase, urgencyLabel } from "@/lib/api/format";
+import { ADMIN_ALLOWED_ROLES, requireAuthContext } from "@/lib/server/auth";
+import { isRbacEnabled } from "@/lib/config/rbac";
 
 const DEFAULT_TENANT_SLUG = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || "lions-global";
 const DEFAULT_DONOR_EMAIL = process.env.NEXT_PUBLIC_DEMO_DONOR_EMAIL || "john@example.com";
 const DEFAULT_VOLUNTEER_EMAIL = process.env.NEXT_PUBLIC_DEMO_VOLUNTEER_EMAIL || "sarah@example.com";
+const MS_IN_DAY = 24 * 60 * 60 * 1000;
+
+type ReportRange = "7d" | "30d" | "90d" | "all";
 
 export async function getTenantId() {
   const supabase = await createClient();
@@ -201,11 +206,59 @@ export async function getDonorDashboard(donorEmail = DEFAULT_DONOR_EMAIL) {
   };
 }
 
+export async function getRecentTenantDonations(limit = 10) {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  const { data, error } = await supabase
+    .from("donations")
+    .select("id,amount,currency,payment_method,status,receipt_url,donated_at,donor_email,campaigns(title)")
+    .eq("tenant_id", tenantId)
+    .order("donated_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+
+  return (data || []).map((donation: any) => ({
+    id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
+    rawId: donation.id,
+    date: formatShortDate(donation.donated_at),
+    campaign: donation.campaigns?.title || "General Fund",
+    amount: formatCurrency(donation.amount, donation.currency),
+    amountValue: Number(donation.amount || 0),
+    method: donation.payment_method || "Card",
+    rawStatus: donation.status,
+    status: titleCase(donation.status),
+    receiptUrl: donation.receipt_url || null,
+    impact: "Impact verified",
+    donorEmail: donation.donor_email || "anonymous",
+  }));
+}
+
+async function getCampaignFundingSummaryForTenant(tenantId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("campaign_funding_summary")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  return (data || []).map(mapCampaign);
+}
+
+export async function getAdminCampaigns() {
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+  return getCampaignFundingSummaryForTenant(tenantId);
+}
+
 export async function getAdminDashboard() {
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
   const [campaigns, donations, operations] = await Promise.all([
-    getCampaigns(),
-    getRecentDonations(DEFAULT_DONOR_EMAIL, 12),
-    getOperations(),
+    getCampaignFundingSummaryForTenant(tenantId),
+    getRecentTenantDonations(12),
+    getOperationsForTenant(tenantId),
   ]);
 
   const totalRaised = campaigns.reduce((sum, campaign) => sum + campaign.raisedAmount, 0);
@@ -225,7 +278,7 @@ export async function getAdminDashboard() {
       ...donations.slice(0, 3).map((donation) => ({
         id: donation.id,
         type: "Donation",
-        user: DEFAULT_DONOR_EMAIL,
+        user: donation.donorEmail,
         amount: donation.amount,
         status: donation.status,
         date: donation.date,
@@ -243,8 +296,12 @@ export async function getAdminDashboard() {
 }
 
 export async function getOperations() {
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+  return getOperationsForTenant(tenantId);
+}
+
+async function getOperationsForTenant(tenantId: string) {
   const supabase = await createClient();
-  const tenantId = await getTenantId();
 
   const { data: expenses, error: expenseError } = await supabase
     .from("expenses")
@@ -264,6 +321,487 @@ export async function getOperations() {
     status: titleCase(expense.status),
     date: formatShortDate(expense.expense_date),
   }));
+}
+
+function parseRangeStart(range: ReportRange): Date | null {
+  if (range === "all") return null;
+  const days = range === "7d" ? 7 : range === "90d" ? 90 : 30;
+  return new Date(Date.now() - (days - 1) * MS_IN_DAY);
+}
+
+function inDateRange(value: string | null, start: Date | null) {
+  if (!value) return false;
+  if (!start) return true;
+  return new Date(value) >= start;
+}
+
+function toDayKey(value: string) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function buildDayBuckets(
+  points: { date: string; amount: number }[],
+  fallbackDays: number,
+) {
+  if (points.length === 0) return [];
+
+  const latest = new Date(points[0].date);
+  const earliest = new Date(points[points.length - 1].date);
+  const spanDays = Math.max(1, Math.ceil((latest.getTime() - earliest.getTime()) / MS_IN_DAY) + 1);
+  const totalDays = Math.max(fallbackDays, Math.min(180, spanDays));
+  const start = new Date(latest.getTime() - (totalDays - 1) * MS_IN_DAY);
+
+  const sums = new Map<string, number>();
+  for (const point of points) {
+    const key = toDayKey(point.date);
+    sums.set(key, (sums.get(key) || 0) + point.amount);
+  }
+
+  const buckets: { date: string; value: number }[] = [];
+  for (let index = 0; index < totalDays; index += 1) {
+    const current = new Date(start.getTime() + index * MS_IN_DAY);
+    const key = current.toISOString().slice(0, 10);
+    buckets.push({
+      date: key,
+      value: Number((sums.get(key) || 0).toFixed(2)),
+    });
+  }
+
+  return buckets;
+}
+
+export async function getAdminDonors(limit = 100) {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  const [donorsResponse, donationsResponse] = await Promise.all([
+    supabase
+      .from("donors")
+      .select("id,full_name,email,phone,is_anonymous,communications_opt_in,created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("donations")
+      .select("id,donor_id,donor_email,amount,currency,status,donated_at,campaigns(title)")
+      .eq("tenant_id", tenantId)
+      .order("donated_at", { ascending: false })
+      .limit(500),
+  ]);
+
+  if (donorsResponse.error) throw new Error(donorsResponse.error.message);
+  if (donationsResponse.error) throw new Error(donationsResponse.error.message);
+
+  const donors = donorsResponse.data || [];
+  const donations = donationsResponse.data || [];
+  const succeededDonations = donations.filter((item: any) => item.status === "succeeded");
+
+  const byDonorKey = new Map<string, any[]>();
+  for (const donation of succeededDonations as any[]) {
+    const key = donation.donor_id || donation.donor_email || "unknown";
+    const entries = byDonorKey.get(key) || [];
+    entries.push(donation);
+    byDonorKey.set(key, entries);
+  }
+
+  const donorRows = donors.map((donor: any) => {
+    const key = donor.id || donor.email;
+    const rows = byDonorKey.get(key) || [];
+    const totalAmount = rows.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const latestDonation = rows[0]?.donated_at || null;
+
+    return {
+      id: donor.id,
+      name: donor.full_name || donor.email || "Anonymous",
+      email: donor.email,
+      phone: donor.phone || "—",
+      donationCount: rows.length,
+      totalDonated: formatCurrency(totalAmount),
+      lastDonation: latestDonation ? formatShortDate(latestDonation) : "—",
+      lifecycle: rows.length > 1 ? "Repeat" : rows.length === 1 ? "Active" : "New",
+      communicationsOptIn: Boolean(donor.communications_opt_in),
+      isAnonymous: Boolean(donor.is_anonymous),
+    };
+  });
+
+  const totalDonatedValue = succeededDonations.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const repeatDonors = donorRows.filter((donor) => donor.donationCount > 1).length;
+  const avgGiftValue = succeededDonations.length ? totalDonatedValue / succeededDonations.length : 0;
+
+  return {
+    kpis: {
+      totalDonors: donorRows.length,
+      activeDonors: donorRows.filter((donor) => donor.donationCount > 0).length,
+      repeatDonors,
+      averageGift: formatCurrency(avgGiftValue),
+      totalDonated: formatCurrency(totalDonatedValue),
+    },
+    donors: donorRows,
+    recentActivity: donations.slice(0, 12).map((donation: any) => ({
+      id: donation.id,
+      donorEmail: donation.donor_email || "anonymous",
+      campaign: donation.campaigns?.title || "General Fund",
+      amount: formatCurrency(donation.amount, donation.currency),
+      status: titleCase(donation.status),
+      date: formatShortDate(donation.donated_at),
+    })),
+  };
+}
+
+export async function getAdminReports(range: ReportRange = "30d") {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+  const rangeStart = parseRangeStart(range);
+
+  const [donationsResponse, expensesResponse, campaignsResponse, auditsResponse] = await Promise.all([
+    supabase
+      .from("donations")
+      .select("id,amount,currency,status,donated_at,campaign_id,campaigns(title)")
+      .eq("tenant_id", tenantId)
+      .order("donated_at", { ascending: false })
+      .limit(1000),
+    supabase
+      .from("expenses")
+      .select("id,amount,currency,status,expense_date,campaign_id,campaigns(title),category")
+      .eq("tenant_id", tenantId)
+      .order("expense_date", { ascending: false })
+      .limit(1000),
+    supabase
+      .from("campaigns")
+      .select("id,title,goal_amount,currency,status,created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("audit_logs")
+      .select("id,action,target_type,actor_email,created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  if (donationsResponse.error) throw new Error(donationsResponse.error.message);
+  if (expensesResponse.error) throw new Error(expensesResponse.error.message);
+  if (campaignsResponse.error) throw new Error(campaignsResponse.error.message);
+  if (auditsResponse.error) throw new Error(auditsResponse.error.message);
+
+  const donations = (donationsResponse.data || []).filter((item: any) => inDateRange(item.donated_at, rangeStart));
+  const expenses = (expensesResponse.data || []).filter((item: any) => inDateRange(item.expense_date, rangeStart));
+  const campaigns = campaignsResponse.data || [];
+  const audits = (auditsResponse.data || []).filter((item: any) => inDateRange(item.created_at, rangeStart));
+
+  const donationTotal = donations.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const expenseTotal = expenses.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const successfulCount = donations.filter((item: any) => item.status === "succeeded").length;
+  const successRate = donations.length ? (successfulCount / donations.length) * 100 : 0;
+
+  const donationStatusMap = new Map<string, number>();
+  for (const donation of donations as any[]) {
+    const key = titleCase(donation.status || "unknown");
+    donationStatusMap.set(key, (donationStatusMap.get(key) || 0) + 1);
+  }
+
+  const expenseStatusMap = new Map<string, number>();
+  for (const expense of expenses as any[]) {
+    const key = titleCase(expense.status || "unknown");
+    expenseStatusMap.set(key, (expenseStatusMap.get(key) || 0) + 1);
+  }
+
+  const campaignMetrics = new Map<string, { title: string; goal: number; raised: number; spent: number; currency: string }>();
+  for (const campaign of campaigns as any[]) {
+    campaignMetrics.set(campaign.id, {
+      title: campaign.title,
+      goal: Number(campaign.goal_amount || 0),
+      raised: 0,
+      spent: 0,
+      currency: campaign.currency || "INR",
+    });
+  }
+
+  for (const donation of donations as any[]) {
+    if (!donation.campaign_id) continue;
+    const metric = campaignMetrics.get(donation.campaign_id);
+    if (!metric) continue;
+    metric.raised += Number(donation.amount || 0);
+  }
+
+  for (const expense of expenses as any[]) {
+    if (!expense.campaign_id) continue;
+    const metric = campaignMetrics.get(expense.campaign_id);
+    if (!metric) continue;
+    metric.spent += Number(expense.amount || 0);
+  }
+
+  return {
+    range,
+    summary: {
+      donationsRaised: formatCurrency(donationTotal),
+      donationCount: donations.length,
+      expensesPosted: formatCurrency(expenseTotal),
+      netFlow: formatCurrency(donationTotal - expenseTotal),
+      donationSuccessRate: `${successRate.toFixed(1)}%`,
+    },
+    donationStatus: Array.from(donationStatusMap.entries()).map(([status, count]) => ({ status, count })),
+    expenseStatus: Array.from(expenseStatusMap.entries()).map(([status, count]) => ({ status, count })),
+    campaignFunding: Array.from(campaignMetrics.values())
+      .sort((a, b) => b.raised - a.raised)
+      .slice(0, 8)
+      .map((item) => ({
+        name: item.title,
+        goal: formatCurrency(item.goal, item.currency),
+        raised: formatCurrency(item.raised, item.currency),
+        spent: formatCurrency(item.spent, item.currency),
+        progress: item.goal > 0 ? Math.min(100, Math.round((item.raised / item.goal) * 100)) : 0,
+      })),
+    recentAudit: audits.slice(0, 10).map((entry: any) => ({
+      id: entry.id,
+      actor: entry.actor_email || "system",
+      action: entry.action,
+      target: entry.target_type || "n/a",
+      date: formatShortDate(entry.created_at),
+    })),
+  };
+}
+
+export async function getAdminAnalytics(range: ReportRange = "30d") {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+  const rangeStart = parseRangeStart(range);
+
+  const [donationsResponse, expensesResponse, campaignsResponse] = await Promise.all([
+    supabase
+      .from("donations")
+      .select("id,amount,status,donated_at,campaign_id,campaigns(title)")
+      .eq("tenant_id", tenantId)
+      .order("donated_at", { ascending: false })
+      .limit(1000),
+    supabase
+      .from("expenses")
+      .select("id,amount,status,expense_date,campaign_id,campaigns(title)")
+      .eq("tenant_id", tenantId)
+      .order("expense_date", { ascending: false })
+      .limit(1000),
+    supabase
+      .from("campaigns")
+      .select("id,title,goal_amount,status")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (donationsResponse.error) throw new Error(donationsResponse.error.message);
+  if (expensesResponse.error) throw new Error(expensesResponse.error.message);
+  if (campaignsResponse.error) throw new Error(campaignsResponse.error.message);
+
+  const donations = (donationsResponse.data || []).filter((item: any) => inDateRange(item.donated_at, rangeStart));
+  const expenses = (expensesResponse.data || []).filter((item: any) => inDateRange(item.expense_date, rangeStart));
+  const campaigns = campaignsResponse.data || [];
+
+  const donationsTrend = buildDayBuckets(
+    donations
+      .filter((item: any) => item.donated_at)
+      .map((item: any) => ({ date: item.donated_at, amount: Number(item.amount || 0) })),
+    range === "7d" ? 7 : range === "90d" ? 90 : 30,
+  );
+
+  const expensesTrend = buildDayBuckets(
+    expenses
+      .filter((item: any) => item.expense_date)
+      .map((item: any) => ({ date: item.expense_date, amount: Number(item.amount || 0) })),
+    range === "7d" ? 7 : range === "90d" ? 90 : 30,
+  );
+
+  const campaignRollup = new Map<string, { title: string; goal: number; raised: number; spent: number }>();
+  for (const campaign of campaigns as any[]) {
+    campaignRollup.set(campaign.id, {
+      title: campaign.title,
+      goal: Number(campaign.goal_amount || 0),
+      raised: 0,
+      spent: 0,
+    });
+  }
+
+  for (const donation of donations as any[]) {
+    if (!donation.campaign_id) continue;
+    const row = campaignRollup.get(donation.campaign_id);
+    if (!row) continue;
+    row.raised += Number(donation.amount || 0);
+  }
+
+  for (const expense of expenses as any[]) {
+    if (!expense.campaign_id) continue;
+    const row = campaignRollup.get(expense.campaign_id);
+    if (!row) continue;
+    row.spent += Number(expense.amount || 0);
+  }
+
+  const donationStatusMap = new Map<string, number>();
+  for (const donation of donations as any[]) {
+    const key = titleCase(donation.status || "unknown");
+    donationStatusMap.set(key, (donationStatusMap.get(key) || 0) + 1);
+  }
+
+  const expenseStatusMap = new Map<string, number>();
+  for (const expense of expenses as any[]) {
+    const key = titleCase(expense.status || "unknown");
+    expenseStatusMap.set(key, (expenseStatusMap.get(key) || 0) + 1);
+  }
+
+  const totalRaised = donations.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const totalSpent = expenses.reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+
+  return {
+    range,
+    kpis: {
+      totalRaised: formatCurrency(totalRaised),
+      totalSpent: formatCurrency(totalSpent),
+      netFlow: formatCurrency(totalRaised - totalSpent),
+      activeCampaigns: campaigns.filter((item: any) => item.status === "active" || item.status === "urgent").length,
+    },
+    trends: {
+      donations: donationsTrend.map((point) => ({
+        date: point.date,
+        value: point.value,
+        label: formatShortDate(point.date),
+      })),
+      expenses: expensesTrend.map((point) => ({
+        date: point.date,
+        value: point.value,
+        label: formatShortDate(point.date),
+      })),
+    },
+    campaignPerformance: Array.from(campaignRollup.values())
+      .sort((a, b) => b.raised - a.raised)
+      .slice(0, 10)
+      .map((item) => ({
+        campaign: item.title,
+        raised: item.raised,
+        spent: item.spent,
+        efficiency: item.raised > 0 ? Number((((item.raised - item.spent) / item.raised) * 100).toFixed(1)) : 0,
+      })),
+    statusBreakdown: {
+      donations: Array.from(donationStatusMap.entries()).map(([status, count]) => ({ status, count })),
+      expenses: Array.from(expenseStatusMap.entries()).map(([status, count]) => ({ status, count })),
+    },
+  };
+}
+
+export async function getAdminSettings() {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  const [tenantResponse, membershipsResponse] = await Promise.all([
+    supabase
+      .from("tenants")
+      .select("id,slug,name,country_code,timezone,created_at,updated_at")
+      .eq("id", tenantId)
+      .single(),
+    supabase
+      .from("tenant_memberships")
+      .select("role")
+      .eq("tenant_id", tenantId),
+  ]);
+
+  if (tenantResponse.error) throw new Error(tenantResponse.error.message);
+  if (membershipsResponse.error) throw new Error(membershipsResponse.error.message);
+
+  const roleCounts = new Map<string, number>();
+  for (const row of membershipsResponse.data || []) {
+    roleCounts.set(row.role, (roleCounts.get(row.role) || 0) + 1);
+  }
+
+  return {
+    organization: {
+      name: tenantResponse.data.name,
+      slug: tenantResponse.data.slug,
+      countryCode: tenantResponse.data.country_code || "N/A",
+      timezone: tenantResponse.data.timezone || "N/A",
+      createdAt: formatShortDate(tenantResponse.data.created_at),
+      updatedAt: formatShortDate(tenantResponse.data.updated_at),
+    },
+    members: {
+      total: (membershipsResponse.data || []).length,
+      byRole: Array.from(roleCounts.entries()).map(([role, count]) => ({
+        role: titleCase(role.replaceAll("_", " ")),
+        count,
+      })),
+    },
+    integrations: {
+      supabase: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+      stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+      defaultTenantSlug: DEFAULT_TENANT_SLUG,
+    },
+    security: {
+      rbacEnabled: isRbacEnabled(),
+      middlewareGuard: true,
+      protectedPrefixes: ["/admin", "/api/admin"],
+    },
+  };
+}
+
+export async function getAdminSettingsOrganization() {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  const { data, error } = await supabase
+    .from("tenants")
+    .select("name,slug,country_code,timezone,created_at,updated_at")
+    .eq("id", tenantId)
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  return {
+    name: data.name,
+    slug: data.slug,
+    countryCode: data.country_code || "N/A",
+    timezone: data.timezone || "N/A",
+    createdAt: formatShortDate(data.created_at),
+    updatedAt: formatShortDate(data.updated_at),
+  };
+}
+
+export async function getAdminSettingsMembership() {
+  const supabase = await createClient();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  const { data, error } = await supabase
+    .from("tenant_memberships")
+    .select("role")
+    .eq("tenant_id", tenantId);
+
+  if (error) throw new Error(error.message);
+
+  const roleCounts = new Map<string, number>();
+  for (const row of data || []) {
+    roleCounts.set(row.role, (roleCounts.get(row.role) || 0) + 1);
+  }
+
+  return {
+    total: (data || []).length,
+    byRole: Array.from(roleCounts.entries()).map(([role, count]) => ({
+      role: titleCase(role.replaceAll("_", " ")),
+      count,
+    })),
+  };
+}
+
+export async function getAdminSettingsIntegrations() {
+  await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  return {
+    supabase: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+    defaultTenantSlug: DEFAULT_TENANT_SLUG,
+  };
+}
+
+export async function getAdminSettingsSecurity() {
+  await requireAuthContext(ADMIN_ALLOWED_ROLES);
+
+  return {
+    rbacEnabled: isRbacEnabled(),
+    middlewareGuard: true,
+    protectedPrefixes: ["/admin", "/api/admin"],
+  };
 }
 
 export async function getVolunteerDashboard(volunteerEmail = DEFAULT_VOLUNTEER_EMAIL) {
@@ -309,6 +847,152 @@ export async function getVolunteerDashboard(volunteerEmail = DEFAULT_VOLUNTEER_E
       { id: 1, type: "Survey Form", status: "Pending Sync", date: "10 mins ago" },
       { id: 2, type: "Photo Log", status: "Pending Sync", date: "15 mins ago" },
     ],
+  };
+}
+
+export async function getVolunteerDashboardForCurrentUser() {
+  if (!isRbacEnabled()) {
+    return getVolunteerDashboard(DEFAULT_VOLUNTEER_EMAIL);
+  }
+
+  const supabase = await createClient();
+  const { tenantId, user } = await requireAuthContext(["volunteer", "org_admin"]);
+
+  const { data: volunteer, error: volunteerError } = await supabase
+    .from("volunteer_profiles")
+    .select("id,full_name,hours_logged,impact_score,certifications_count")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (volunteerError) throw new Error(volunteerError.message);
+
+  const { data: assignments, error: assignmentError } = await supabase
+    .from("volunteer_assignments")
+    .select("id,title,location,status,priority,assignment_type,due_at")
+    .eq("tenant_id", tenantId)
+    .eq("volunteer_id", volunteer.id)
+    .order("due_at", { ascending: true });
+
+  if (assignmentError) throw new Error(assignmentError.message);
+
+  return {
+    volunteerName: volunteer.full_name,
+    stats: {
+      hoursLogged: String(volunteer.hours_logged || 0),
+      missionsJoined: String((assignments || []).length),
+      impactScore: String(volunteer.impact_score || 0),
+      certifications: String(volunteer.certifications_count || 0),
+    },
+    assignments: (assignments || []).map((assignment) => ({
+      id: assignment.id,
+      title: assignment.title,
+      location: assignment.location,
+      status: titleCase(assignment.status),
+      urgency: urgencyLabel(assignment.priority),
+      type: assignment.assignment_type,
+      deadline: assignment.due_at ? formatShortDate(assignment.due_at) : "TBD",
+    })),
+    syncQueue: [
+      { id: 1, type: "Survey Form", status: "Pending Sync", date: "10 mins ago" },
+      { id: 2, type: "Photo Log", status: "Pending Sync", date: "15 mins ago" },
+    ],
+  };
+}
+
+export async function getRecentDonationsForCurrentUser(limit = 10) {
+  if (!isRbacEnabled()) {
+    return getRecentDonations(DEFAULT_DONOR_EMAIL, limit);
+  }
+
+  const supabase = await createClient();
+  const { tenantId, user, email } = await requireAuthContext(["donor", "org_admin"]);
+
+  const { data: donorRow } = await supabase
+    .from("donors")
+    .select("id,full_name,email")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  let query = supabase
+    .from("donations")
+    .select("id,amount,currency,payment_method,status,receipt_url,donated_at,campaigns(title)")
+    .eq("tenant_id", tenantId)
+    .order("donated_at", { ascending: false })
+    .limit(limit);
+
+  if (donorRow?.id) {
+    query = query.eq("donor_id", donorRow.id);
+  } else if (email) {
+    query = query.eq("donor_email", email);
+  } else {
+    return [];
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return (data || []).map((donation: any) => ({
+    id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
+    rawId: donation.id,
+    date: formatShortDate(donation.donated_at),
+    campaign: donation.campaigns?.title || "General Fund",
+    amount: formatCurrency(donation.amount, donation.currency),
+    amountValue: Number(donation.amount || 0),
+    method: donation.payment_method || "Card",
+    rawStatus: donation.status,
+    status: titleCase(donation.status),
+    receiptUrl: donation.receipt_url || null,
+    impact: "Impact verified",
+  }));
+}
+
+export async function getDonorDashboardForCurrentUser() {
+  if (!isRbacEnabled()) {
+    return getDonorDashboard(DEFAULT_DONOR_EMAIL);
+  }
+
+  const supabase = await createClient();
+  const { tenantId, user, email } = await requireAuthContext(["donor", "org_admin"]);
+
+  const [donations, ledger, donorResult] = await Promise.all([
+    getRecentDonationsForCurrentUser(20),
+    getTransparencyLedger(10),
+    supabase
+      .from("donors")
+      .select("full_name")
+      .eq("tenant_id", tenantId)
+      .eq("auth_user_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const total = donations.reduce((sum, d) => sum + d.amountValue, 0);
+  const donorName =
+    donorResult.data?.full_name ||
+    (email ? email.split("@")[0] : "Donor");
+
+  return {
+    donorName,
+    stats: {
+      lifetimeDonated: formatCurrency(total),
+      ytdImpact: formatCurrency(total * 0.35),
+      patronSince: "2022",
+      nextMilestone: formatCurrency(Math.ceil((total + 1) / 5000) * 5000),
+    },
+    allocation: [
+      { name: "Clean Water", value: 45, color: "#00338D" },
+      { name: "Education", value: 25, color: "#E63946" },
+      { name: "Emergency Relief", value: 20, color: "#141414" },
+      { name: "Operational", value: 10, color: "#737373" },
+    ],
+    donationHistory: donations,
+    impactTimeline: ledger.slice(0, 3).map((entry) => ({
+      date: entry.date,
+      event: `${entry.campaign} Update`,
+      location: entry.hub,
+      impact: `${entry.type} recorded`,
+    })),
   };
 }
 
@@ -381,7 +1065,7 @@ export async function createExpense(input: {
   vendor?: string;
 }) {
   const supabase = await createClient();
-  const tenantId = await getTenantId();
+  const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
 
   const { data, error } = await supabase
     .from("expenses")
@@ -417,6 +1101,50 @@ export async function createFieldReport(input: {
     .select("id")
     .eq("tenant_id", tenantId)
     .eq("email", volunteerEmail)
+    .single();
+
+  if (volunteerError) throw new Error(volunteerError.message);
+
+  const { data, error } = await supabase
+    .from("field_reports")
+    .insert({
+      tenant_id: tenantId,
+      assignment_id: input.assignmentId || null,
+      volunteer_id: volunteer.id,
+      impact_metric: input.impactMetric || null,
+      notes: input.notes || null,
+      status: "submitted",
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  return data;
+}
+
+export async function createFieldReportForCurrentUser(input: {
+  assignmentId?: string | null;
+  impactMetric?: number;
+  notes?: string;
+}) {
+  if (!isRbacEnabled()) {
+    return createFieldReport({
+      assignmentId: input.assignmentId,
+      impactMetric: input.impactMetric,
+      notes: input.notes,
+      volunteerEmail: DEFAULT_VOLUNTEER_EMAIL,
+    });
+  }
+
+  const supabase = await createClient();
+  const { tenantId, user } = await requireAuthContext(["volunteer", "org_admin"]);
+
+  const { data: volunteer, error: volunteerError } = await supabase
+    .from("volunteer_profiles")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", user.id)
     .single();
 
   if (volunteerError) throw new Error(volunteerError.message);

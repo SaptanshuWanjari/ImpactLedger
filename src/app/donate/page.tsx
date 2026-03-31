@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import PaymentStepper from "@/components/PaymentStepper";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, Wallet, Building2, ShieldCheck, Heart, ArrowRight, ArrowLeft, CheckCircle2, Lock } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { fetchJson, useApiData } from "@/lib/api/client";
 import { useSearchParams } from "next/navigation";
@@ -22,7 +22,7 @@ type CampaignsResponse = {
   campaigns: { id: string; title: string }[];
 };
 
-export default function DonatePage() {
+function DonatePageContent() {
   const searchParams = useSearchParams();
   const preselectedCampaignId = searchParams.get("campaignId");
 
@@ -92,10 +92,10 @@ export default function DonatePage() {
             <div className="lg:col-span-2 no-line-card p-8 md:p-12 bg-white shadow-2xl border border-muted ring-1 ring-black/5 min-h-[500px] flex flex-col">
               <AnimatePresence mode="wait">
                 {currentStep === 0 && (
-                  <motion.div key="step-0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex-grow">
+                  <motion.div key="step-0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 grow">
                     <h3 className="text-2xl font-display font-bold">Select Donation Amount</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {["$25", "$50", "$100", "$250"].map((amount) => (
+                      {["₹100", "₹500", "₹1000", "₹2000"].map((amount) => (
                         <button
                           key={amount}
                           onClick={() => {
@@ -203,7 +203,7 @@ export default function DonatePage() {
                   </div>
                   <h4 className="font-display font-bold text-xl">Monthly Impact</h4>
                 </div>
-                <p className="text-3xl font-display font-extrabold text-accent">{finalAmountLabel}</p>
+                <p className="text-3xl font-display font-extrabold text-blue-400">{finalAmountLabel}</p>
               </div>
 
               <div className="no-line-card p-6 border border-muted flex items-center gap-4">
@@ -222,5 +222,13 @@ export default function DonatePage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function DonatePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DonatePageContent />
+    </Suspense>
   );
 }

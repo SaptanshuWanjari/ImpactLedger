@@ -37,7 +37,7 @@ export default function AboutPage() {
                 <span className="text-accent">Engineered.</span>
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
-                Impact Lodger (Lions NGO Management System) is a radical departure from traditional charity. We replace vague promises with immutable data and real-time verification.
+                Impact Ledger (Lions NGO Management System) is a radical departure from traditional charity. We replace vague promises with immutable data and real-time verification.
               </p>
               <div className="flex gap-4">
                 <Link href="/transparency" className="btn-primary py-4 px-8">
@@ -93,7 +93,7 @@ export default function AboutPage() {
           {/* Core Values */}
           <section className="space-y-16">
             <div className="text-center space-y-4 max-w-2xl mx-auto">
-              <h2 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">The Impact Lodger Principles.</h2>
+              <h2 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">The Impact Ledger Principles.</h2>
               <p className="text-muted-foreground">Our foundation is built on four non-negotiable pillars.</p>
             </div>
 
@@ -122,7 +122,7 @@ export default function AboutPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-4">
                 <h2 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">The Stewards.</h2>
-                <p className="text-muted-foreground max-w-xl">Meet the engineers, humanitarians, and visionaries building the future of Impact Lodger.</p>
+                <p className="text-muted-foreground max-w-xl">Meet the engineers, humanitarians, and visionaries building the future of Impact Ledger.</p>
               </div>
               <button className="btn-outline py-3 px-8 flex items-center gap-2">
                 Join the Team <ArrowRight size={18} />
@@ -169,7 +169,7 @@ export default function AboutPage() {
                 <span className="text-white/60">Steward?</span>
               </h2>
               <p className="text-xl text-white/80 leading-relaxed">
-                Join thousands of donors and volunteers who are already using Impact Lodger to build a more transparent world.
+                Join thousands of donors and volunteers who are already using Impact Ledger to build a more transparent world.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/donate" className="btn-primary bg-white text-accent border-none py-4 px-10 text-lg">

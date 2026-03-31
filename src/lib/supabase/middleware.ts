@@ -1,14 +1,32 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabasePublishableKey } from './env'
+import { isRbacEnabled } from '@/lib/config/rbac'
+
+const PROTECTED_PATH_PREFIXES = ['/admin', '/donor', '/volunteer']
+const PROTECTED_API_PREFIXES = ['/api/admin', '/api/donor', '/api/volunteer']
+
+const ROLE_ALLOWED_PREFIXES: Record<string, string[]> = {
+  org_admin: ['/admin'],
+  volunteer: ['/volunteer'],
+  donor: ['/donor'],
+}
+
+function startsWithAny(pathname: string, prefixes: string[]) {
+  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
+
+function roleHomePath(role: string | null) {
+  if (role === 'volunteer') return '/volunteer'
+  if (role === 'org_admin') return '/admin'
+  return '/donor'
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     getSupabasePublishableKey(),
@@ -30,38 +48,54 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  const pathname = request.nextUrl.pathname
+  const authRequired = startsWithAny(pathname, PROTECTED_PATH_PREFIXES) || startsWithAny(pathname, PROTECTED_API_PREFIXES)
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
+  if (!authRequired || !isRbacEnabled()) {
+    return supabaseResponse
+  }
+
   const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
+  const claims = data?.claims as any
+  const userId = claims?.sub || null
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  if (!userId) {
+    if (startsWithAny(pathname, PROTECTED_API_PREFIXES)) {
+      return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    }
+
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
+    url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  const role = (claims?.app_metadata?.app_role || null) as string | null
+
+  if (!role) {
+    if (startsWithAny(pathname, PROTECTED_API_PREFIXES)) {
+      return NextResponse.json({ error: 'No tenant role assigned.' }, { status: 403 })
+    }
+
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.searchParams.set('error', 'No tenant role assigned.')
+    return NextResponse.redirect(url)
+  }
+
+  const allowedPrefixes = ROLE_ALLOWED_PREFIXES[role] || []
+  const isProtectedPage = startsWithAny(pathname, PROTECTED_PATH_PREFIXES)
+  const isProtectedApi = startsWithAny(pathname, PROTECTED_API_PREFIXES)
+
+  if (isProtectedPage && !startsWithAny(pathname, allowedPrefixes)) {
+    const url = request.nextUrl.clone()
+    url.pathname = roleHomePath(role)
+    return NextResponse.redirect(url)
+  }
+
+  if (isProtectedApi && !startsWithAny(pathname, allowedPrefixes.map((p) => `/api${p}`))) {
+    return NextResponse.json({ error: 'Forbidden.' }, { status: 403 })
+  }
 
   return supabaseResponse
 }

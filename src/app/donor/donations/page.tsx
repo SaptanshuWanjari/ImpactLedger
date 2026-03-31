@@ -22,7 +22,7 @@ type DonationsResponse = {
 };
 
 export default function DonorDonationsPage() {
-  const { data, isLoading } = useApiData<DonationsResponse>("/api/donor/donations?donorEmail=john@example.com");
+  const { data, isLoading } = useApiData<DonationsResponse>("/api/donor/donations");
   const donations = data?.donations || [];
 
   return (

@@ -21,7 +21,7 @@ import { useState, useEffect } from "react";
 const sidebarLinks = [
   { name: "Volunteer Hub", href: "/volunteer", icon: HandHelping },
   { name: "Assignments", href: "/volunteer/assignments", icon: ClipboardList },
-  { name: "Field Map", href: "/volunteer/map", icon: MapPin },
+  // { name: "Field Map", href: "/volunteer/map", icon: MapPin },
   { name: "Resources", href: "/volunteer/resources", icon: BookOpen },
   { name: "Impact Logs", href: "/volunteer/logs", icon: TrendingUp },
   { name: "Verification", href: "/volunteer/verification", icon: ShieldCheck },
@@ -88,7 +88,7 @@ export default function VolunteerSidebar() {
           Settings
         </Link>
         <Link
-          href="/"
+          href="/auth/signout"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
         >
           <LogOut size={18} />

@@ -19,8 +19,8 @@ const sidebarLinks = [
   { name: "Impact Portal", href: "/donor", icon: User },
   { name: "My Donations", href: "/donor/donations", icon: History },
   { name: "Impact Analytics", href: "/donor/analytics", icon: PieChart },
-  { name: "My Badges", href: "/donor/badges", icon: Award },
-  { name: "Stewardship", href: "/donor/stewardship", icon: ShieldCheck },
+  // { name: "My Badges", href: "/donor/badges", icon: Award },
+  // { name: "Stewardship", href: "/donor/stewardship", icon: ShieldCheck },
 ];
 
 export default function DonorSidebar() {
@@ -32,7 +32,7 @@ export default function DonorSidebar() {
         <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white">
           <Heart size={18} fill="currentColor" />
         </div>
-        <span className="text-lg font-display font-extrabold tracking-tighter">Donor Portal</span>
+        <Link href='/' className="text-lg font-display font-extrabold tracking-tighter">Donor Portal</Link>
       </div>
 
       <nav className="flex-grow space-y-2">
@@ -63,7 +63,7 @@ export default function DonorSidebar() {
           Settings
         </Link>
         <Link
-          href="/"
+          href="/auth/signout"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
         >
           <LogOut size={18} />

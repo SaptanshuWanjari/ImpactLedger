@@ -124,7 +124,7 @@ create index if not exists idx_stripe_webhook_events_tenant_received_at
 -- Impact Ledger naming alignment (no slug changes).
 update public.tenants
 set name = 'Impact Ledger'
-where lower(name) in ('impact lodger', 'impact ledger');
+where lower(name) in ('impact ledger', 'impact ledger');
 
 -- RLS for new Stripe tables.
 alter table public.donation_ledger enable row level security;

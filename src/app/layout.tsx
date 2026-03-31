@@ -6,7 +6,7 @@ import { Geist } from "next/font/google";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Impact Lodger - Lions NGO Management System",
+  title: "Impact Ledger - Lions NGO Management System",
   description: "A modern, transparent, and efficient NGO management system for Lions International.",
 };
 

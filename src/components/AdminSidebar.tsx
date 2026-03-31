@@ -34,7 +34,7 @@ export default function AdminSidebar() {
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
           <Heart size={18} fill="currentColor" />
         </div>
-        <span className="text-lg font-display font-extrabold tracking-tighter">Impact Lodger Admin</span>
+        <span className="text-lg font-display font-extrabold tracking-tighter">Impact Ledger Admin</span>
       </div>
 
       <nav className="flex-grow space-y-2">
@@ -59,17 +59,22 @@ export default function AdminSidebar() {
       <div className="pt-6 border-t border-muted space-y-2">
         <Link
           href="/admin/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-all"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+            pathname === "/admin/settings"
+              ? "bg-accent/10 text-accent"
+              : "text-muted-foreground hover:bg-muted hover:text-primary",
+          )}
         >
           <Settings size={18} />
           Settings
         </Link>
         <Link
-          href="/"
+          href="/auth/signout"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
         >
           <LogOut size={18} />
-          Exit Admin
+          Sign Out
         </Link>
       </div>
     </aside>

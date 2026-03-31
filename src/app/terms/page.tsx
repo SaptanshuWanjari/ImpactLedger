@@ -15,7 +15,7 @@ export default function TermsPage() {
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-bold">1. Acceptance of Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing or using the Impact Lodger (Lions NGO Management System) platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use our services.
+              By accessing or using the Impact Ledger (Lions NGO Management System) platform, you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use our services.
             </p>
           </section>
 
@@ -29,21 +29,21 @@ export default function TermsPage() {
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-bold">3. Donations and Stewardship</h2>
             <p className="text-muted-foreground leading-relaxed">
-              All donations made through Impact Lodger are final and non-refundable. We are committed to radical transparency and will provide verifiable proof of fund allocation for every donation.
+              All donations made through Impact Ledger are final and non-refundable. We are committed to radical transparency and will provide verifiable proof of fund allocation for every donation.
             </p>
           </section>
 
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-bold">4. Volunteer Responsibilities</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Volunteers are responsible for providing accurate field reports and following our safety and ethical guidelines. Impact Lodger reserves the right to terminate volunteer assignments at any time.
+              Volunteers are responsible for providing accurate field reports and following our safety and ethical guidelines. Impact Ledger reserves the right to terminate volunteer assignments at any time.
             </p>
           </section>
 
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-bold">5. Limitation of Liability</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Impact Lodger shall not be liable for any direct, indirect, incidental, or consequential damages arising out of your use of the platform.
+              Impact Ledger shall not be liable for any direct, indirect, incidental, or consequential damages arising out of your use of the platform.
             </p>
           </section>
 

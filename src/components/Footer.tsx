@@ -40,7 +40,7 @@ export default function Footer() {
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
                 <Heart size={24} fill="currentColor" />
               </div>
-              <span className="text-xl font-display font-extrabold tracking-tighter">Impact Lodger</span>
+              <span className="text-xl font-display font-extrabold tracking-tighter">Impact Ledger</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
               Empowering Lions International to manage stewardship with radical transparency and modern efficiency.
@@ -79,7 +79,7 @@ export default function Footer() {
 
         <div className="border-t border-muted pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-muted-foreground text-xs">
-            © {new Date().getFullYear()} Lions NGO Management System. All rights reserved.
+            © {new Date().getFullYear()} Impact Ledger. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-muted-foreground text-xs">

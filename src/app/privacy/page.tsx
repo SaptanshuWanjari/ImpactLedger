@@ -15,7 +15,7 @@ export default function PrivacyPage() {
           <section className="space-y-4">
             <h2 className="text-2xl font-display font-bold">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">
-              At Impact Lodger (Lions NGO Management System), we take your privacy seriously. This policy explains how we collect, use, and protect your personal information when you use our platform.
+              At Impact Ledger (Lions NGO Management System), we take your privacy seriously. This policy explains how we collect, use, and protect your personal information when you use our platform.
             </p>
           </section>
 

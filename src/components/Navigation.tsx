@@ -39,7 +39,7 @@ export default function Navigation() {
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white transition-transform group-hover:rotate-12">
             <Heart size={24} fill="currentColor" />
           </div>
-          <span className="text-xl font-display font-extrabold tracking-tighter">Impact Lodger</span>
+          <span className="text-xl font-display font-extrabold tracking-tighter">Impact Ledger</span>
         </Link>
 
         {/* Desktop Nav */}

@@ -47,7 +47,7 @@ export default function LandingPage() {
                 <span className="text-accent">Steward.</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Impact Lodger empowers Lions International to manage global impact with modern efficiency, absolute transparency, and human-centric design.
+                Impact Ledger empowers Lions International to manage global impact with modern efficiency, absolute transparency, and human-centric design.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/donate" className="btn-primary flex items-center gap-2">
@@ -146,7 +146,7 @@ export default function LandingPage() {
                 Accounted For.
               </h2>
               <p className="text-lg text-primary-foreground/70 leading-relaxed">
-                We believe trust is earned through visibility. Impact Lodger provides a real-time breakdown of fund allocation, operational costs, and direct impact metrics.
+                We believe trust is earned through visibility. Impact Ledger provides a real-time breakdown of fund allocation, operational costs, and direct impact metrics.
               </p>
               <ul className="space-y-4">
                 {[

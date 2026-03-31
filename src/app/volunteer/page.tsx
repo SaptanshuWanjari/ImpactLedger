@@ -15,7 +15,7 @@ type VolunteerDashboard = {
 };
 
 export default function VolunteerHub() {
-  const { data, isLoading } = useApiData<VolunteerDashboard>("/api/volunteer/dashboard?volunteerEmail=sarah@example.com");
+  const { data, isLoading } = useApiData<VolunteerDashboard>("/api/volunteer/dashboard");
   const [isOnline, setIsOnline] = useState(true);
   const [reportNotes, setReportNotes] = useState("");
   const [reportMetric, setReportMetric] = useState("");
@@ -36,7 +36,7 @@ export default function VolunteerHub() {
     try {
       await fetchJson("/api/volunteer/assignments", {
         method: "POST",
-        body: JSON.stringify({ volunteerEmail: "sarah@example.com", impactMetric: Number(reportMetric), notes: reportNotes }),
+        body: JSON.stringify({ impactMetric: Number(reportMetric), notes: reportNotes }),
       });
       setMessage("Report submitted.");
     } catch (error) {

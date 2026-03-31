@@ -19,7 +19,7 @@ type Assignment = {
 type Response = { assignments: Assignment[] };
 
 export default function VolunteerAssignmentsPage() {
-  const { data, isLoading } = useApiData<Response>("/api/volunteer/assignments?volunteerEmail=sarah@example.com");
+  const { data, isLoading } = useApiData<Response>("/api/volunteer/assignments");
 
   return (
     <div className="flex min-h-screen bg-background">

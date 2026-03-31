@@ -4,8 +4,9 @@ import Link from "next/link";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function DonateCancelPage() {
+function DonateCancelPageContent() {
   const searchParams = useSearchParams();
   const donationId = searchParams.get("donationId");
 
@@ -31,5 +32,13 @@ export default function DonateCancelPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function DonateCancelPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <DonateCancelPageContent />
+    </Suspense>
   );
 }

@@ -21,7 +21,7 @@ type DonorDashboard = {
 };
 
 export default function DonorPortal() {
-  const { data, isLoading } = useApiData<DonorDashboard>("/api/donor/dashboard?donorEmail=john@example.com");
+  const { data, isLoading } = useApiData<DonorDashboard>("/api/donor/dashboard");
 
   const impactStats = [
     { label: "Lifetime Donated", value: data?.stats.lifetimeDonated || "-", icon: Heart },
