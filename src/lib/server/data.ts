@@ -878,22 +878,54 @@ export async function getVolunteerDashboard(volunteerEmail = DEFAULT_VOLUNTEER_E
   };
 }
 
-export async function getVolunteerDashboardForCurrentUser() {
+async function getVolunteerIdentityForCurrentUser() {
   if (!isRbacEnabled()) {
-    return getVolunteerDashboard(DEFAULT_VOLUNTEER_EMAIL);
+    const supabase = await createClient();
+    const tenantId = await getTenantId();
+
+    const { data: volunteer, error: volunteerError } = await supabase
+      .from("volunteer_profiles")
+      .select("id,full_name,email,skills,hours_logged,impact_score,certifications_count")
+      .eq("tenant_id", tenantId)
+      .eq("email", DEFAULT_VOLUNTEER_EMAIL)
+      .single();
+
+    if (volunteerError) throw new Error(volunteerError.message);
+
+    return {
+      tenantId,
+      role: "volunteer",
+      userId: "dev-rbac-bypass-user",
+      userEmail: DEFAULT_VOLUNTEER_EMAIL,
+      volunteer,
+    };
   }
 
   const supabase = await createClient();
-  const { tenantId, user } = await requireAuthContext(["volunteer", "org_admin"]);
+  const { tenantId, user, role } = await requireAuthContext(["volunteer", "org_admin"]);
 
   const { data: volunteer, error: volunteerError } = await supabase
     .from("volunteer_profiles")
-    .select("id,full_name,hours_logged,impact_score,certifications_count")
+    .select("id,full_name,email,skills,hours_logged,impact_score,certifications_count")
     .eq("tenant_id", tenantId)
     .eq("auth_user_id", user.id)
     .single();
 
   if (volunteerError) throw new Error(volunteerError.message);
+
+  return {
+    tenantId,
+    role: role || "volunteer",
+    userId: user.id,
+    userEmail: user.email || volunteer.email,
+    volunteer,
+  };
+}
+
+export async function getVolunteerDashboardForCurrentUser() {
+  const supabase = await createClient();
+  const identity = await getVolunteerIdentityForCurrentUser();
+  const { tenantId, volunteer } = identity;
 
   const { data: assignments, error: assignmentError } = await supabase
     .from("volunteer_assignments")
@@ -925,6 +957,204 @@ export async function getVolunteerDashboardForCurrentUser() {
       { id: 1, type: "Survey Form", status: "Pending Sync", date: "10 mins ago" },
       { id: 2, type: "Photo Log", status: "Pending Sync", date: "15 mins ago" },
     ],
+  };
+}
+
+export async function getVolunteerResourcesForCurrentUser() {
+  const supabase = await createClient();
+  const identity = await getVolunteerIdentityForCurrentUser();
+  const { tenantId, volunteer } = identity;
+
+  const { data: assignments, error: assignmentError } = await supabase
+    .from("volunteer_assignments")
+    .select("id,title,location,status,assignment_type,due_at")
+    .eq("tenant_id", tenantId)
+    .eq("volunteer_id", volunteer.id)
+    .order("due_at", { ascending: true })
+    .limit(10);
+
+  if (assignmentError) throw new Error(assignmentError.message);
+
+  const assignmentTypes = Array.from(
+    new Set((assignments || []).map((row) => row.assignment_type).filter(Boolean)),
+  );
+
+  const generatedResources = assignmentTypes.map((type, index) => ({
+    id: `type-${index + 1}`,
+    title: `${type} Field Playbook`,
+    kind: "Playbook",
+    audience: "Assignment",
+    description: `Checklist and SOP template for ${type.toLowerCase()} assignments.`,
+    ctaLabel: "Open Guide",
+    href: "/volunteer/assignments",
+  }));
+
+  const skillResources = (volunteer.skills || []).slice(0, 5).map((skill: string, index: number) => ({
+    id: `skill-${index + 1}`,
+    title: `${titleCase(skill.replaceAll("-", " "))} Reference`,
+    kind: "Reference",
+    audience: "Skill",
+    description: "Best-practice notes and quality checks mapped to your profile skills.",
+    ctaLabel: "View Notes",
+    href: "/volunteer/logs",
+  }));
+
+  return {
+    volunteerName: volunteer.full_name,
+    skills: volunteer.skills || [],
+    assignments: (assignments || []).map((assignment) => ({
+      id: assignment.id,
+      title: assignment.title,
+      location: assignment.location,
+      status: titleCase(assignment.status),
+      type: assignment.assignment_type,
+      deadline: assignment.due_at ? formatShortDate(assignment.due_at) : "TBD",
+    })),
+    resources: [
+      ...generatedResources,
+      ...skillResources,
+      {
+        id: "offline-pack",
+        title: "Offline Capture SOP",
+        kind: "Policy",
+        audience: "All Volunteers",
+        description: "Fallback workflow for low-connectivity field updates and delayed sync.",
+        ctaLabel: "Review SOP",
+        href: "/volunteer",
+      },
+    ],
+  };
+}
+
+export async function getVolunteerImpactLogsForCurrentUser() {
+  const supabase = await createClient();
+  const identity = await getVolunteerIdentityForCurrentUser();
+  const { tenantId, volunteer } = identity;
+
+  const { data: reports, error: reportsError } = await supabase
+    .from("field_reports")
+    .select(`
+      id,
+      impact_metric,
+      notes,
+      status,
+      submitted_at,
+      volunteer_assignments (
+        title,
+        location,
+        assignment_type
+      )
+    `)
+    .eq("tenant_id", tenantId)
+    .eq("volunteer_id", volunteer.id)
+    .order("submitted_at", { ascending: false })
+    .limit(30);
+
+  if (reportsError) throw new Error(reportsError.message);
+
+  const totalImpact = (reports || []).reduce((sum, report: any) => sum + Number(report.impact_metric || 0), 0);
+  const reviewedCount = (reports || []).filter((report) => report.status === "reviewed").length;
+  const submittedCount = (reports || []).filter((report) => report.status === "submitted").length;
+  const returnedCount = (reports || []).filter((report) => report.status === "returned").length;
+
+  return {
+    volunteerName: volunteer.full_name,
+    summary: {
+      totalReports: (reports || []).length,
+      reviewed: reviewedCount,
+      pendingReview: submittedCount,
+      needsCorrection: returnedCount,
+      totalImpact,
+    },
+    logs: (reports || []).map((report: any) => ({
+      id: report.id,
+      assignment: report.volunteer_assignments?.title || "General field report",
+      location: report.volunteer_assignments?.location || "Global",
+      type: report.volunteer_assignments?.assignment_type || "General",
+      submittedAt: formatShortDate(report.submitted_at),
+      impactMetric: Number(report.impact_metric || 0),
+      status: titleCase(report.status),
+      notes: report.notes || "—",
+    })),
+  };
+}
+
+export async function getVolunteerVerificationForCurrentUser() {
+  const supabase = await createClient();
+  const identity = await getVolunteerIdentityForCurrentUser();
+  const { tenantId, volunteer } = identity;
+
+  const [assignmentsResponse, reportsResponse] = await Promise.all([
+    supabase
+      .from("volunteer_assignments")
+      .select("id,title,status,due_at")
+      .eq("tenant_id", tenantId)
+      .eq("volunteer_id", volunteer.id)
+      .order("due_at", { ascending: true }),
+    supabase
+      .from("field_reports")
+      .select("id,assignment_id,status,submitted_at,impact_metric")
+      .eq("tenant_id", tenantId)
+      .eq("volunteer_id", volunteer.id)
+      .order("submitted_at", { ascending: false })
+      .limit(50),
+  ]);
+
+  if (assignmentsResponse.error) throw new Error(assignmentsResponse.error.message);
+  if (reportsResponse.error) throw new Error(reportsResponse.error.message);
+
+  const assignments = assignmentsResponse.data || [];
+  const reports = reportsResponse.data || [];
+
+  const reportedAssignmentIds = new Set(reports.map((row) => row.assignment_id).filter(Boolean));
+  const submitted = reports.filter((row) => row.status === "submitted").length;
+  const reviewed = reports.filter((row) => row.status === "reviewed").length;
+  const returned = reports.filter((row) => row.status === "returned").length;
+  const coverage = assignments.length ? Math.round((reportedAssignmentIds.size / assignments.length) * 100) : 0;
+
+  return {
+    volunteerName: volunteer.full_name,
+    assignmentCoverage: {
+      totalAssignments: assignments.length,
+      reportedAssignments: reportedAssignmentIds.size,
+      completionRate: coverage,
+    },
+    reportStatus: {
+      submitted,
+      reviewed,
+      returned,
+    },
+    verificationQueue: reports
+      .filter((row) => row.status === "submitted" || row.status === "returned")
+      .slice(0, 10)
+      .map((row) => ({
+        id: row.id,
+        assignmentId: row.assignment_id,
+        status: titleCase(row.status),
+        submittedAt: formatShortDate(row.submitted_at),
+        impactMetric: Number(row.impact_metric || 0),
+      })),
+  };
+}
+
+export async function getVolunteerSettingsForCurrentUser() {
+  const identity = await getVolunteerIdentityForCurrentUser();
+  const { role, userId, userEmail, volunteer } = identity;
+
+  return {
+    profile: {
+      fullName: volunteer.full_name,
+      email: volunteer.email,
+      hoursLogged: Number(volunteer.hours_logged || 0),
+      impactScore: Number(volunteer.impact_score || 0),
+      certifications: Number(volunteer.certifications_count || 0),
+    },
+    skills: volunteer.skills || [],
+    account: {
+      role: titleCase(role.replaceAll("_", " ")),
+      userId,
+      userEmail: userEmail || volunteer.email,
+    },
   };
 }
 

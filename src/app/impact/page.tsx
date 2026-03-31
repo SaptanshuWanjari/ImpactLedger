@@ -159,7 +159,7 @@ export default function ImpactPage() {
                   { title: "Audited Monthly", desc: "External auditors review our digital stewardship logs every 30 days." },
                 ].map((item) => (
                   <div key={item.title} className="space-y-2">
-                    <div className="flex items-center gap-2 text-accent">
+                    <div className="flex items-center gap-2 text-blue-300">
                       <CheckCircle2 size={18} />
                       <h4 className="font-display font-bold">{item.title}</h4>
                     </div>

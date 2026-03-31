@@ -82,7 +82,12 @@ export default function VolunteerSidebar() {
       <div className="pt-6 border-t border-muted space-y-2">
         <Link
           href="/volunteer/settings"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-all"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
+            pathname === "/volunteer/settings"
+              ? "bg-green-50 text-green-600"
+              : "text-muted-foreground hover:bg-muted hover:text-primary",
+          )}
         >
           <Settings size={18} />
           Settings
