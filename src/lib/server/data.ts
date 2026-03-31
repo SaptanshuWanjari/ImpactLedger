@@ -10,6 +10,32 @@ const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 type ReportRange = "7d" | "30d" | "90d" | "all";
 
+function isTransientFetchError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  return message.toLowerCase().includes("fetch failed");
+}
+
+async function runWithFetchRetry<T>(operation: () => Promise<T>, attempts = 3, delayMs = 250): Promise<T> {
+  let lastError: unknown = null;
+
+  for (let index = 0; index < attempts; index += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      const isLastAttempt = index === attempts - 1;
+
+      if (!isTransientFetchError(error) || isLastAttempt) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs * (index + 1)));
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Unknown fetch retry failure.");
+}
+
 export async function getTenantId() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -567,25 +593,27 @@ export async function getAdminAnalytics(range: ReportRange = "30d") {
   const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
   const rangeStart = parseRangeStart(range);
 
-  const [donationsResponse, expensesResponse, campaignsResponse] = await Promise.all([
-    supabase
-      .from("donations")
-      .select("id,amount,status,donated_at,campaign_id,campaigns(title)")
-      .eq("tenant_id", tenantId)
-      .order("donated_at", { ascending: false })
-      .limit(1000),
-    supabase
-      .from("expenses")
-      .select("id,amount,status,expense_date,campaign_id,campaigns(title)")
-      .eq("tenant_id", tenantId)
-      .order("expense_date", { ascending: false })
-      .limit(1000),
-    supabase
-      .from("campaigns")
-      .select("id,title,goal_amount,status")
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [donationsResponse, expensesResponse, campaignsResponse] = await runWithFetchRetry(() =>
+    Promise.all([
+      supabase
+        .from("donations")
+        .select("id,amount,status,donated_at,campaign_id,campaigns(title)")
+        .eq("tenant_id", tenantId)
+        .order("donated_at", { ascending: false })
+        .limit(1000),
+      supabase
+        .from("expenses")
+        .select("id,amount,status,expense_date,campaign_id,campaigns(title)")
+        .eq("tenant_id", tenantId)
+        .order("expense_date", { ascending: false })
+        .limit(1000),
+      supabase
+        .from("campaigns")
+        .select("id,title,goal_amount,status")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false }),
+    ]),
+  );
 
   if (donationsResponse.error) throw new Error(donationsResponse.error.message);
   if (expensesResponse.error) throw new Error(expensesResponse.error.message);
