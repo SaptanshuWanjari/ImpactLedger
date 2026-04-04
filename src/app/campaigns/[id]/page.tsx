@@ -129,5 +129,5 @@ export default function CampaignDetailPage() {
 
       <Footer />
     </div>
-  /* ); */
+  ); 
 }
