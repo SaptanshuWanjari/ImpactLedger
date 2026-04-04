@@ -24,7 +24,7 @@ const sidebarLinks = [
   // { name: "Field Map", href: "/volunteer/map", icon: MapPin },
   { name: "Resources", href: "/volunteer/resources", icon: BookOpen },
   { name: "Impact Logs", href: "/volunteer/logs", icon: TrendingUp },
-  { name: "Verification", href: "/volunteer/verification", icon: ShieldCheck },
+  /* { name: "Verification", href: "/volunteer/verification", icon: ShieldCheck }, */
 ];
 
 export default function VolunteerSidebar() {
@@ -54,13 +54,13 @@ export default function VolunteerSidebar() {
       <nav className="flex-grow space-y-2">
         <div className="flex items-center justify-between mb-4 px-3">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Volunteer Menu</p>
-          <div className={cn(
+          {/* <div className={cn(
             "flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full",
             isOnline ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
           )}>
             {isOnline ? <Wifi size={10} /> : <WifiOff size={10} />}
             {isOnline ? "Online" : "Offline"}
-          </div>
+          </div> */}
         </div>
         {sidebarLinks.map((link) => (
           <Link
@@ -80,7 +80,7 @@ export default function VolunteerSidebar() {
       </nav>
 
       <div className="pt-6 border-t border-muted space-y-2">
-        <Link
+        {/* <Link
           href="/volunteer/settings"
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
@@ -91,7 +91,7 @@ export default function VolunteerSidebar() {
         >
           <Settings size={18} />
           Settings
-        </Link>
+        </Link> */}
         <Link
           href="/auth/signout"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"

@@ -20,12 +20,20 @@ type DonationStatusResponse = {
   };
 };
 
+type InvoiceResponse = {
+  invoice: {
+    status: "sent" | "already_sent" | "skipped" | "failed";
+    message: string;
+    receiptUrl: string;
+  };
+};
+
 const TERMINAL_STATES = new Set(["succeeded", "failed", "refunded", "disputed"]);
 
-function formatAmount(amount: number, currency: string) {
+function formatAmount(amount: number) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: currency || "INR",
+    currency: "INR",
   }).format(amount || 0);
 }
 
@@ -35,6 +43,9 @@ function DonateSuccessPageContent() {
 
   const [status, setStatus] = useState<DonationStatusResponse["donation"] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [invoiceMessage, setInvoiceMessage] = useState<string | null>(null);
+  const [invoiceDispatched, setInvoiceDispatched] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   useEffect(() => {
     if (!donationId) {
@@ -70,6 +81,36 @@ function DonateSuccessPageContent() {
     };
   }, [donationId]);
 
+  useEffect(() => {
+    if (!status || !donationId || status.status !== "succeeded" || invoiceDispatched) return;
+
+    let cancelled = false;
+
+    const sendInvoice = async () => {
+      try {
+        const response = await fetchJson<InvoiceResponse>(`/api/donations/${donationId}/invoice`, {
+          method: "POST",
+        });
+        if (cancelled) return;
+        setInvoiceMessage(response.invoice.message);
+      } catch (invoiceError) {
+        if (cancelled) return;
+        setInvoiceMessage((invoiceError as Error).message);
+      } finally {
+        if (!cancelled) {
+          setInvoiceDispatched(true);
+          setShowSuccessDialog(true);
+        }
+      }
+    };
+
+    sendInvoice();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, donationId, invoiceDispatched]);
+
   const message = useMemo(() => {
     if (!status) return "Confirming your payment...";
     if (status.status === "succeeded") return "Payment confirmed. Thank you for supporting Impact Ledger.";
@@ -91,7 +132,7 @@ function DonateSuccessPageContent() {
             <div className="space-y-2 text-sm">
               <p><span className="font-bold">Donation ID:</span> {status.id}</p>
               <p><span className="font-bold">Status:</span> {status.status}</p>
-              <p><span className="font-bold">Amount:</span> {formatAmount(status.amount, status.currency)}</p>
+              <p><span className="font-bold">Amount:</span> {formatAmount(status.amount)}</p>
               {status.receiptUrl && (
                 <p>
                   <a href={status.receiptUrl} target="_blank" rel="noreferrer" className="font-bold text-accent hover:underline">
@@ -101,11 +142,36 @@ function DonateSuccessPageContent() {
               )}
             </div>
           )}
+          {invoiceMessage && (
+            <p className="text-sm text-muted-foreground">{invoiceMessage}</p>
+          )}
           <div className="flex gap-4">
             <Link href="/donor/donations" className="btn-primary px-4 py-2 text-sm">View Donation History</Link>
             <Link href="/donate" className="px-4 py-2 text-sm font-bold text-muted-foreground hover:text-primary">Donate Again</Link>
           </div>
         </div>
+        {showSuccessDialog && status?.status === "succeeded" && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-6">
+            <div className="w-full max-w-md rounded-3xl border border-muted bg-white p-8 shadow-2xl">
+              <h2 className="text-2xl font-display font-extrabold tracking-tight">Payment Successful</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Your UPI payment of {formatAmount(status.amount)} is confirmed.
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {invoiceMessage || "Invoice receipt has been processed and linked to your donation record."}
+              </p>
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessDialog(false)}
+                  className="btn-primary px-4 py-2 text-sm"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

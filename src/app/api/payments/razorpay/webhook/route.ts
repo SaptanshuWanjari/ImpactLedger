@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getRazorpayWebhookSecret, verifyRazorpayWebhookSignature } from "@/lib/server/razorpay";
+import { dispatchDonationInvoice } from "@/lib/server/invoice";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,8 @@ type DonationUpdate = {
   failure_reason?: string | null;
   refunded_amount?: number;
   payment_provider?: string;
+  payment_method?: string;
+  currency?: string;
 };
 
 type RazorpayPaymentEntity = {
@@ -147,6 +150,9 @@ async function handlePaymentCaptured(payload: RazorpayWebhookEvent, eventKey: st
     razorpay_payment_id: payment.id,
     provider_event_last_id: eventKey,
     failure_reason: null,
+    receipt_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/donate/success?donationId=${encodeURIComponent(donation.id)}`,
+    currency: "INR",
+    payment_method: "UPI",
     payment_provider: "razorpay",
   });
 
@@ -157,11 +163,19 @@ async function handlePaymentCaptured(payload: RazorpayWebhookEvent, eventKey: st
     campaignId: donation.campaign_id,
     eventType: "donation_confirmed",
     amount: Number(donation.amount || (payment.amount || 0) / 100),
-    currency: String(donation.currency || payment.currency || "INR").toUpperCase(),
+    currency: "INR",
     eventId: eventKey,
     orderId: payment.order_id,
     paymentId: payment.id,
   });
+
+  try {
+    await dispatchDonationInvoice({
+      donationId: donation.id,
+    });
+  } catch {
+    // Invoice dispatch is best-effort; payment reconciliation must still succeed.
+  }
 
   return "processed" as const;
 }
@@ -185,6 +199,8 @@ async function handlePaymentFailed(payload: RazorpayWebhookEvent, eventKey: stri
     razorpay_payment_id: payment.id,
     provider_event_last_id: eventKey,
     failure_reason: payment.error_description || "Payment failed",
+    payment_method: "UPI",
+    currency: "INR",
     payment_provider: "razorpay",
   });
 
@@ -195,7 +211,7 @@ async function handlePaymentFailed(payload: RazorpayWebhookEvent, eventKey: stri
     campaignId: donation.campaign_id,
     eventType: "donation_failed",
     amount: Number((payment.amount || 0) / 100),
-    currency: String(payment.currency || donation.currency || "INR").toUpperCase(),
+    currency: "INR",
     eventId: eventKey,
     orderId: payment.order_id || null,
     paymentId: payment.id,
@@ -224,6 +240,8 @@ async function handleRefund(payload: RazorpayWebhookEvent, eventKey: string) {
     razorpay_payment_id: refund.payment_id,
     provider_event_last_id: eventKey,
     refunded_amount: totalRefunded,
+    payment_method: "UPI",
+    currency: "INR",
     payment_provider: "razorpay",
   });
 
@@ -234,7 +252,7 @@ async function handleRefund(payload: RazorpayWebhookEvent, eventKey: string) {
     campaignId: donation.campaign_id,
     eventType: "donation_refunded",
     amount: refundAmount,
-    currency: String(donation.currency || "INR").toUpperCase(),
+    currency: "INR",
     eventId: eventKey,
     paymentId: refund.payment_id,
     metadata: { refund_id: refund.id },

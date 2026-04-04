@@ -1,21 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { motion } from "framer-motion";
 import { 
   ShieldCheck, 
   Globe, 
   Users, 
-  Heart, 
   CheckCircle2, 
-  ArrowRight, 
   Zap, 
-  Lock,
   Target,
   Award
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -23,13 +19,13 @@ export default function AboutPage() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
+      <main className="grow pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-32">
           {/* Hero Section */}
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-bold uppercase tracking-widest">
-                <ShieldCheck size={12} />
+              <div className="inline-flex items-center gap-2 px-3 py-3 bg-accent/10 text-accent rounded-full text-[14px] font-bold uppercase tracking-widest">
+                <ShieldCheck size={14} />
                 The Digital Steward
               </div>
               <h1 className="text-6xl md:text-8xl font-display font-extrabold tracking-tighter leading-none">
@@ -50,8 +46,10 @@ export default function AboutPage() {
             </div>
             <div className="relative">
               <div className="aspect-square bg-muted rounded-[40px] overflow-hidden">
-                <img 
-                  src="https://picsum.photos/seed/lions/1000/1000" 
+                <Image 
+                  src="/hero.jpg" 
+                  height={600}
+                  width={600}
                   alt="Lions NGO Impact" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

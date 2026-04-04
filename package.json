@@ -13,7 +13,8 @@
     "db:seed": "node --env-file=.env.local scripts/seed-mock-data.mjs",
     "db:seed:auth": "node --env-file=.env.local scripts/seed-auth-users.mjs",
     "db:seed:all": "npm run db:seed:auth && npm run db:seed",
-    "db:seed:test": "npm run db:seed:all"
+    "db:seed:test": "npm run db:seed:all",
+    "invoice:sample": "node scripts/generate-sample-invoice-pdf.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",

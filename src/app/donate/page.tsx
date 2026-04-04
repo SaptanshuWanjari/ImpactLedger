@@ -4,18 +4,39 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PaymentStepper from "@/components/PaymentStepper";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, Wallet, Building2, ShieldCheck, Heart, ArrowRight, ArrowLeft, CheckCircle2, Lock } from "lucide-react";
+import {
+  Wallet,
+  ShieldCheck,
+  Heart,
+  Lock,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+} from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { fetchJson, useApiData } from "@/lib/api/client";
 import { useSearchParams } from "next/navigation";
 
 const steps = ["Amount", "Details", "Payment", "Review"];
 
 const paymentMethods = [
-  { id: "card", name: "Credit/Debit Card", icon: CreditCard, description: "Visa, Mastercard, Amex" },
-  { id: "wallet", name: "Digital Wallets", icon: Wallet, description: "Apple Pay, Google Pay, PayPal" },
-  { id: "bank", name: "Bank Transfer", icon: Building2, description: "Direct ACH or Wire Transfer" },
+  {
+    id: "wallet",
+    name: "UPI",
+    icon: Wallet,
+    description: "Any UPI app (Google Pay, PhonePe, Paytm, BHIM)",
+  },
 ];
 
 type CampaignsResponse = {
@@ -37,6 +58,12 @@ type RazorpayCheckoutResponse = {
     };
     notes?: Record<string, string>;
   };
+};
+
+type RazorpaySuccessPayload = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
 };
 
 declare global {
@@ -68,40 +95,69 @@ function DonatePageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
   const [customAmount, setCustomAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("card");
-  const [fullName, setFullName] = useState("John Doe");
-  const [email, setEmail] = useState("john@example.com");
-  const [campaignId, setCampaignId] = useState<string>(preselectedCampaignId || "general");
+  const [selectedMethod, setSelectedMethod] = useState("wallet");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [campaignId, setCampaignId] = useState<string>(
+    preselectedCampaignId || "general",
+  );
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  const nextStep = () =>
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   const amountNumber = useMemo(() => {
-    const fromSelected = selectedAmount ? Number(selectedAmount.replace("$", "")) : 0;
+    const fromSelected = selectedAmount
+      ? Number(selectedAmount.replace(/[^\d.]/g, ""))
+      : 0;
     const fromCustom = customAmount ? Number(customAmount) : 0;
-    return fromCustom > 0 ? fromCustom : fromSelected;
+    return fromCustom > 0 ? Math.floor(fromCustom) : Math.floor(fromSelected);
   }, [selectedAmount, customAmount]);
 
-  const finalAmountLabel = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amountNumber || 0);
+  const finalAmountLabel = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+  }).format(amountNumber || 0);
+
+  const hasValidAmount = Number.isFinite(amountNumber) && amountNumber > 0;
+  const hasValidDetails = Boolean(fullName.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const canProceedStep = useMemo(() => {
+    if (currentStep === 0) return hasValidAmount;
+    if (currentStep === 1) return hasValidAmount && hasValidDetails;
+    if (currentStep === 2) return hasValidAmount && hasValidDetails && selectedMethod === "wallet";
+    return hasValidAmount && hasValidDetails && selectedMethod === "wallet";
+  }, [currentStep, hasValidAmount, hasValidDetails, selectedMethod]);
 
   async function submitDonation() {
+    if (!hasValidAmount || !hasValidDetails) {
+      setResultMessage("Enter a valid INR amount, full name, and email before continuing.");
+      return;
+    }
+    if (selectedMethod !== "wallet") {
+      setResultMessage("Only UPI payments are supported.");
+      return;
+    }
+
     setSubmitting(true);
     setResultMessage(null);
 
     try {
-      const response = await fetchJson<RazorpayCheckoutResponse>("/api/payments/checkout-session", {
-        method: "POST",
-        body: JSON.stringify({
-          fullName,
-          email,
-          amount: amountNumber,
-          campaignId: campaignId === "general" ? null : campaignId,
-          isAnonymous,
-        }),
-      });
+      const response = await fetchJson<RazorpayCheckoutResponse>(
+        "/api/payments/checkout-session",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            fullName,
+            email,
+            amount: amountNumber,
+            campaignId: campaignId === "general" ? null : campaignId,
+            isAnonymous,
+          }),
+        },
+      );
 
       const scriptLoaded = await loadRazorpayCheckoutScript();
       if (!scriptLoaded || !window.Razorpay) {
@@ -117,7 +173,38 @@ function DonatePageContent() {
         description: response.checkout.description,
         prefill: response.checkout.prefill,
         notes: response.checkout.notes || {},
-        handler: () => {
+        method: {
+          upi: true,
+          card: false,
+          netbanking: false,
+          wallet: false,
+          emi: false,
+          paylater: false,
+        },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay via UPI",
+                instruments: [{ method: "upi" }],
+              },
+            },
+            sequence: ["block.upi"],
+            preferences: {
+              show_default_blocks: false,
+            },
+          },
+        },
+        handler: async (paymentResult: RazorpaySuccessPayload) => {
+          await fetchJson("/api/payments/verify", {
+            method: "POST",
+            body: JSON.stringify({
+              donationId: response.donationId,
+              razorpayPaymentId: paymentResult.razorpay_payment_id,
+              razorpayOrderId: paymentResult.razorpay_order_id,
+              razorpaySignature: paymentResult.razorpay_signature,
+            }),
+          });
           window.location.href = `/donate/success?donationId=${encodeURIComponent(response.donationId)}`;
         },
         modal: {
@@ -142,12 +229,18 @@ function DonatePageContent() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
+      <main className="grow pt-32 pb-20 px-6">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <p className="text-accent font-bold uppercase tracking-widest text-xs">Secure Stewardship</p>
-            <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">Fund the Mission.</h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">Your contribution is transparent and API-verified.</p>
+            <p className="text-accent font-bold uppercase tracking-widest text-xs">
+              Secure Stewardship
+            </p>
+            <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
+              Fund the Mission.
+            </h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Your contribution is transparent and API-verified.
+            </p>
           </div>
 
           <PaymentStepper currentStep={currentStep} steps={steps} />
@@ -156,8 +249,16 @@ function DonatePageContent() {
             <div className="lg:col-span-2 no-line-card p-8 md:p-12 bg-white shadow-2xl border border-muted ring-1 ring-black/5 min-h-[500px] flex flex-col">
               <AnimatePresence mode="wait">
                 {currentStep === 0 && (
-                  <motion.div key="step-0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 grow">
-                    <h3 className="text-2xl font-display font-bold">Select Donation Amount</h3>
+                  <motion.div
+                    key="step-0"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-8 grow"
+                  >
+                    <h3 className="text-2xl font-display font-bold">
+                      Select Donation Amount
+                    </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {["₹100", "₹500", "₹1000", "₹2000"].map((amount) => (
                         <button
@@ -168,7 +269,9 @@ function DonatePageContent() {
                           }}
                           className={cn(
                             "py-6 rounded-2xl font-display font-bold text-xl transition-all border-2",
-                            selectedAmount === amount ? "bg-primary text-white border-primary shadow-lg scale-105" : "bg-muted/30 border-transparent hover:bg-muted/50",
+                            selectedAmount === amount
+                              ? "bg-primary text-white border-primary shadow-lg scale-105"
+                              : "bg-muted/30 border-transparent hover:bg-muted/50",
                           )}
                         >
                           {amount}
@@ -176,46 +279,119 @@ function DonatePageContent() {
                       ))}
                     </div>
                     <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-display font-bold text-2xl text-muted-foreground">₹</span>
-                      <input type="number" placeholder="Custom Amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null); }} className="w-full pl-12 pr-6 py-6 bg-muted/30 border-none rounded-2xl font-display font-bold text-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all" />
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-display font-bold text-2xl text-muted-foreground">
+                        ₹
+                      </span>
+                      <Input
+                        type="number"
+                        placeholder="Custom Amount"
+                        value={customAmount}
+                        onChange={(e) => {
+                          setCustomAmount(e.target.value);
+                          setSelectedAmount(null);
+                        }}
+                        className="w-full pl-12 pr-6 py-6 bg-muted/30 border-none rounded-2xl font-display font-bold text-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
+                      />
                     </div>
                   </motion.div>
                 )}
 
                 {currentStep === 1 && (
-                  <motion.div key="step-1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex-grow">
-                    <h3 className="text-2xl font-display font-bold">Your Details</h3>
+                  <motion.div
+                    key="step-1"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-8 grow"
+                  >
+                    <h3 className="text-2xl font-display font-bold">
+                      Your Details
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full name" className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all" />
-                      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all" />
+                      <Input
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Full name"
+                        className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all"
+                      />
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email"
+                        className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all"
+                      />
                     </div>
-                    <select value={campaignId} onChange={(e) => setCampaignId(e.target.value)} className="w-full px-4 py-3 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all">
-                      <option value="general">General Impact Fund</option>
-                      {(data?.campaigns || []).map((campaign) => (
-                        <option key={campaign.id} value={campaign.id}>{campaign.title}</option>
-                      ))}
-                    </select>
+                    <Select value={campaignId} onValueChange={setCampaignId}>
+                      <SelectTrigger className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all">
+                        <SelectValue placeholder="Select Campaign" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border border-muted rounded-xl shadow-lg">
+                        <SelectGroup>
+                          <SelectItem value="general">
+                            General Impact Fund
+                          </SelectItem>
+                          {(data?.campaigns || []).map((campaign) => (
+                            <SelectItem key={campaign.id} value={campaign.id}>
+                              {campaign.title}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                     <label className="flex items-center gap-3 text-sm">
-                      <input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
+                      <input
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(e) => setIsAnonymous(e.target.checked)}
+                      />
                       Make this donation anonymous
                     </label>
                   </motion.div>
                 )}
 
                 {currentStep === 2 && (
-                  <motion.div key="step-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex-grow">
-                    <h3 className="text-2xl font-display font-bold">Payment Method</h3>
+                  <motion.div
+                    key="step-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-8 grow"
+                  >
+                    <h3 className="text-2xl font-display font-bold">
+                      Payment Method
+                    </h3>
                     <div className="space-y-4">
                       {paymentMethods.map((method) => (
-                        <button key={method.id} onClick={() => setSelectedMethod(method.id)} className={cn("w-full flex items-center gap-4 p-6 rounded-2xl border-2 transition-all text-left", selectedMethod === method.id ? "bg-primary/5 border-primary shadow-sm" : "bg-white border-muted hover:bg-muted/30")}>
-                          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", selectedMethod === method.id ? "bg-primary text-white" : "bg-muted text-muted-foreground")}>
+                        <button
+                          key={method.id}
+                          onClick={() => setSelectedMethod(method.id)}
+                          className={cn(
+                            "w-full flex items-center gap-4 p-6 rounded-2xl border-2 transition-all text-left",
+                            selectedMethod === method.id
+                              ? "bg-primary/5 border-primary shadow-sm"
+                              : "bg-white border-muted hover:bg-muted/30",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-12 h-12 rounded-xl flex items-center justify-center",
+                              selectedMethod === method.id
+                                ? "bg-primary text-white"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
                             <method.icon size={24} />
                           </div>
-                          <div className="flex-grow">
+                          <div className="grow">
                             <p className="font-bold">{method.name}</p>
-                            <p className="text-xs text-muted-foreground">{method.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {method.description}
+                            </p>
                           </div>
-                          {selectedMethod === method.id && <CheckCircle2 size={16} className="text-accent" />}
+                          {selectedMethod === method.id && (
+                            <CheckCircle2 size={26} className="text-accent" />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -223,23 +399,58 @@ function DonatePageContent() {
                 )}
 
                 {currentStep === 3 && (
-                  <motion.div key="step-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex-grow text-center">
+                  <motion.div
+                    key="step-3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-8 grow text-center"
+                  >
                     <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                       <ShieldCheck size={40} />
                     </div>
-                    <h3 className="text-3xl font-display font-bold">Review & Confirm</h3>
-                    <div className="bg-muted/30 p-8 rounded-3xl space-y-4 max-w-md mx-auto text-left">
-                      <div className="flex justify-between"><span>Amount</span><span className="font-bold">{finalAmountLabel}</span></div>
-                      <div className="flex justify-between"><span>Donor</span><span className="font-bold">{fullName}</span></div>
-                      <div className="flex justify-between"><span>Method</span><span className="font-bold">{paymentMethods.find((m) => m.id === selectedMethod)?.name}</span></div>
+                    <h3 className="text-3xl font-display font-bold">
+                      Review & Confirm
+                    </h3>
+                    <div className="bg-muted/30 p-8 rounded-3xl mb-5 space-y-4 max-w-md mx-auto text-left">
+                      <div className="flex justify-between">
+                        <span>Amount</span>
+                        <span className="font-bold">{finalAmountLabel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Donor</span>
+                        <span className="font-bold">{fullName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Method</span>
+                        <span className="font-bold">
+                          {
+                            paymentMethods.find((m) => m.id === selectedMethod)
+                              ?.name
+                          }
+                        </span>
+                      </div>
                     </div>
-                    {resultMessage && <p className="text-sm text-muted-foreground">{resultMessage}</p>}
+                    {resultMessage && (
+                      <p className="text-sm text-red-600">
+                        {resultMessage}
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <div className="flex items-center justify-between pt-12 mt-auto border-t border-muted">
-                <button onClick={prevStep} disabled={currentStep === 0} className={cn("flex items-center gap-2 text-sm font-bold transition-all", currentStep === 0 ? "opacity-0 pointer-events-none" : "text-muted-foreground hover:text-primary")}>
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 0}
+                  className={cn(
+                    "flex items-center gap-2 text-sm font-bold transition-all",
+                    currentStep === 0
+                      ? "opacity-0 pointer-events-none"
+                      : "text-muted-foreground hover:text-primary",
+                  )}
+                >
                   <ArrowLeft size={18} /> Back
                 </button>
                 <button
@@ -250,15 +461,18 @@ function DonatePageContent() {
                     }
                     nextStep();
                   }}
-                  disabled={submitting || amountNumber <= 0}
+                  disabled={submitting || !canProceedStep}
                   className="btn-primary flex items-center gap-2 py-3 px-8 disabled:opacity-50"
                 >
-                  {currentStep === steps.length - 1 ? (submitting ? "Submitting..." : "Finalize Stewardship") : "Continue"}
+                  {currentStep === steps.length - 1
+                    ? submitting
+                      ? "Submitting..."
+                      : "Finalize Stewardship"
+                    : "Continue"}
                   <ArrowRight size={18} />
                 </button>
               </div>
             </div>
-
             <div className="space-y-6">
               <div className="no-line-card p-8 bg-primary text-primary-foreground">
                 <div className="flex items-center gap-4 mb-6">
@@ -274,12 +488,14 @@ function DonatePageContent() {
                 <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
                   <Lock size={20} />
                 </div>
-                  <div>
-                    <p className="text-sm font-bold">Secure Verification</p>
-                  <p className="text-xs text-muted-foreground">Razorpay Checkout securely handles payment and webhook verification.</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-bold">Secure Verification</p>
+                  <p className="text-xs text-muted-foreground">
+                    Razorpay UPI checkout securely handles payment and webhook verification.
+                  </p>
                 </div>
               </div>
+            </div>
           </div>
         </div>
       </main>

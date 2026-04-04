@@ -34,7 +34,7 @@ export default function AdminSidebar() {
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
           <Heart size={18} fill="currentColor" />
         </div>
-        <span className="text-lg font-display font-extrabold tracking-tighter">Impact Ledger Admin</span>
+        <Link href='/' className="text-lg font-display font-extrabold tracking-tighter">Impact Ledger</Link>
       </div>
 
       <nav className="flex-grow space-y-2">
@@ -57,7 +57,7 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="pt-6 border-t border-muted space-y-2">
-        <Link
+        {/* <Link
           href="/admin/settings"
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
@@ -68,7 +68,7 @@ export default function AdminSidebar() {
         >
           <Settings size={18} />
           Settings
-        </Link>
+        </Link> */}
         <Link
           href="/auth/signout"
           className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"

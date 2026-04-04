@@ -40,7 +40,7 @@ export async function GET(
         id: data.id,
         status: data.status,
         amount: Number(data.amount || 0),
-        currency: data.currency || "INR",
+        currency: "INR",
         receiptUrl: data.receipt_url || null,
         donatedAt: data.donated_at,
         orderId: data.razorpay_order_id || null,

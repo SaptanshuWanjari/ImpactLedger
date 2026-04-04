@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         amount,
         currency: CURRENCY,
         status: "pending",
-        payment_method: "Razorpay Checkout",
+        payment_method: "UPI",
         source: "web",
         payment_provider: "razorpay",
       })
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
           key: keyId,
           orderId: order.id,
           amount: order.amount,
-          currency: order.currency,
+          currency: CURRENCY,
           name: "Impact Ledger Donation",
           description: body.campaignId ? "Campaign donation" : "General fund donation",
           prefill: {

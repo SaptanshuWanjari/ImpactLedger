@@ -98,7 +98,7 @@ export default function TransparencyPage() {
             </div>
           </section>
 
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-1 space-y-6">
               <h2 className="text-3xl font-display font-extrabold tracking-tight">Audit Reports</h2>
               <p className="text-muted-foreground leading-relaxed">Quarterly audit summaries are stored and downloadable from the admin workspace.</p>
@@ -117,7 +117,7 @@ export default function TransparencyPage() {
                 </div>
               ))}
             </div>
-          </section>
+          </section> */}
         </div>
       </main>
       <Footer />

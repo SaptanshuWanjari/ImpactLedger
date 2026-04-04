@@ -26,7 +26,7 @@ export default function PaymentStepper({ currentStep, steps }: PaymentStepperPro
             index < currentStep ? "bg-accent text-white" : 
             index === currentStep ? "bg-primary text-white scale-110 shadow-lg" : "bg-muted text-muted-foreground"
           )}>
-            {index < currentStep ? <CheckCircle2 size={20} /> : index + 1}
+            {index < currentStep ? <CheckCircle2 size={25} /> : index + 1}
           </div>
           <span className={cn(
             "text-[10px] font-bold uppercase tracking-widest transition-colors",

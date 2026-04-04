@@ -17,7 +17,7 @@ const footerLinks = [
       { name: "Donate Now", href: "/donate" },
       { name: "Donor Portal", href: "/donor" },
       { name: "Transparency", href: "/transparency" },
-      // { name: "Contact Us", href: "/contact" },
+      { name: "About", href: "/about" },
     ],
   },
   // {
