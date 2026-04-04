@@ -1001,7 +1001,6 @@ export async function getVolunteerResourcesForCurrentUser() {
     })),
     resources: [
       ...generatedResources,
-      ...skillResources,
       {
         id: "offline-pack",
         title: "Offline Capture SOP",
