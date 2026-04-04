@@ -57,14 +57,14 @@ export default function ImpactPage() {
               <span className="text-accent">Impact.</span>
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              Impact Ledger provides a real-time, verified view of how every dollar is allocated and the direct impact it creates across the globe.
+              Impact Ledger provides a real-time, verified view of how every rupee is allocated and the direct impact it creates across the globe.
             </p>
           </div>
 
           {/* KPI Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { label: "Total Funds Allocated", value: "$4.2M", icon: TrendingUp },
+              { label: "Total Funds Allocated", value: "₹4.2Cr", icon: TrendingUp },
               { label: "Lives Impacted", value: "1.2M", icon: Heart },
               { label: "Active Missions", value: "156", icon: Globe },
               { label: "Verified Stewards", value: "12.5K", icon: ShieldCheck },
@@ -107,7 +107,7 @@ export default function ImpactPage() {
                 </ResponsiveContainer>
               </div>
               <p className="text-sm text-muted-foreground italic text-center">
-                * Figures in Millions USD. Audited annually by global standards.
+                * Figures shown in INR crore. Audited annually by global standards.
               </p>
             </div>
 

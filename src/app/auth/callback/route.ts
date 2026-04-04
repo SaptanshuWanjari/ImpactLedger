@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { AuthHttpError, ensureUserProvisioned, sanitizeNextPath } from "@/lib/server/auth";
 
+function isStaleSessionError(error: unknown) {
+  const code = typeof error === "object" && error !== null ? String((error as { code?: string }).code || "") : "";
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+  return code === "refresh_token_not_found" || message.includes("invalid refresh token") || message.includes("refresh token not found");
+}
+
 export async function GET(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url);
@@ -25,6 +31,9 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (error) {
+      if (isStaleSessionError(error)) {
+        throw new AuthHttpError(401, "Session expired. Please sign in again.");
+      }
       throw new AuthHttpError(401, error.message);
     }
 

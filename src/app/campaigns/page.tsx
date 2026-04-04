@@ -78,7 +78,7 @@ export default function CampaignsPage() {
                 stat.key === "total"
                   ? String(campaigns.length)
                   : stat.key === "funds"
-                    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(totalRaised)
+                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalRaised)
                     : stat.key === "stewards"
                       ? "12.5K"
                       : "1.2M";

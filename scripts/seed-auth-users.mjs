@@ -31,13 +31,13 @@ const mockUsers = [
     role: "volunteer",
     email: process.env.SEED_VOLUNTEER_EMAIL || "sarah@example.com",
     password: process.env.SEED_VOLUNTEER_PASSWORD || "ImpactLedgerVolunteer#2026",
-    fullName: "Sarah Smith",
+    fullName: "Kavya Sharma",
   },
   {
     role: "donor",
     email: process.env.SEED_DONOR_EMAIL || "john@example.com",
     password: process.env.SEED_DONOR_PASSWORD || "ImpactLedgerDonor#2026",
-    fullName: "John Doe",
+    fullName: "Aarav Mehta",
   },
 ];
 
@@ -47,7 +47,7 @@ async function getTenantId() {
     .upsert(
       {
         slug: tenantSlug,
-        name: "Lions International Global",
+        name: "Impact Ledger India",
         country_code: "IN",
         timezone: "Asia/Kolkata",
       },

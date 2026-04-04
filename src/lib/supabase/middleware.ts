@@ -22,10 +22,46 @@ function roleHomePath(role: string | null) {
   return '/donor'
 }
 
+function isStaleSessionError(error: unknown) {
+  const code = typeof error === 'object' && error !== null ? String((error as { code?: string }).code || '') : ''
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || '').toLowerCase()
+
+  return (
+    code === 'refresh_token_not_found' ||
+    message.includes('invalid refresh token') ||
+    message.includes('refresh token not found') ||
+    message.includes('auth session missing')
+  )
+}
+
+function isSupabaseNetworkError(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || '').toLowerCase()
+  const causeCode =
+    typeof error === 'object' && error !== null
+      ? String(((error as { cause?: { code?: string } }).cause?.code as string) || '')
+      : ''
+
+  return (
+    message.includes('fetch failed') ||
+    message.includes('connect timeout') ||
+    causeCode === 'UND_ERR_CONNECT_TIMEOUT'
+  )
+}
+
+function clearSupabaseCookies(request: NextRequest, response: NextResponse) {
+  const allCookies = request.cookies.getAll()
+  for (const cookie of allCookies) {
+    if (cookie.name.startsWith('sb-')) {
+      response.cookies.set(cookie.name, '', { path: '/', maxAge: 0 })
+    }
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
+  let staleSessionDetected = false
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,19 +91,48 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  const { data } = await supabase.auth.getClaims()
-  const claims = data?.claims as any
-  const userId = claims?.sub || null
+  let claims: any = null
+  let userId: string | null = null
+
+  try {
+    const { data } = await supabase.auth.getClaims()
+    claims = data?.claims as any
+    userId = claims?.sub || null
+  } catch (error) {
+    if (isStaleSessionError(error)) {
+      staleSessionDetected = true
+      userId = null
+    } else if (isSupabaseNetworkError(error)) {
+      if (startsWithAny(pathname, PROTECTED_API_PREFIXES)) {
+        return NextResponse.json({ error: 'Authentication service unavailable.' }, { status: 503 })
+      }
+
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      url.searchParams.set('error', 'Authentication service unavailable. Please retry.')
+      return NextResponse.redirect(url)
+    } else {
+      throw error
+    }
+  }
 
   if (!userId) {
     if (startsWithAny(pathname, PROTECTED_API_PREFIXES)) {
-      return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+      const response = NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+      if (staleSessionDetected) {
+        clearSupabaseCookies(request, response)
+      }
+      return response
     }
 
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     url.searchParams.set('next', pathname)
-    return NextResponse.redirect(url)
+    const response = NextResponse.redirect(url)
+    if (staleSessionDetected) {
+      clearSupabaseCookies(request, response)
+    }
+    return response
   }
 
   const role = (claims?.app_metadata?.app_role || null) as string | null

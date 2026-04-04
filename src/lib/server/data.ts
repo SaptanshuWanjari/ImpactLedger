@@ -1274,7 +1274,7 @@ export async function createDonation(input: {
     donor_email: input.email,
     campaign_id: input.campaignId || null,
     amount: input.amount,
-    currency: "USD",
+    currency: "INR",
     status: "pending",
     payment_method: input.paymentMethod || "Card",
     source: "web",

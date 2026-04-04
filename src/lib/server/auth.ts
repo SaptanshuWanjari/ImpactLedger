@@ -54,24 +54,78 @@ async function getDefaultTenantId() {
   if (cachedTenantId) {
     return cachedTenantId;
   }
+  let adminErrorMessage = "";
+  try {
+    const supabaseAdmin = createAdminClient() as any;
+    const { data, error } = await supabaseAdmin
+      .from("tenants")
+      .select("id")
+      .eq("slug", DEFAULT_TENANT_SLUG)
+      .single();
 
-  const supabaseAdmin = createAdminClient() as any;
-  const { data, error } = await supabaseAdmin
-    .from("tenants")
-    .select("id")
-    .eq("slug", DEFAULT_TENANT_SLUG)
-    .single();
+    if (!error && data?.id) {
+      cachedTenantId = data.id as string;
+      return cachedTenantId;
+    }
 
-  if (error) {
-    throw new Error(`Unable to resolve tenant '${DEFAULT_TENANT_SLUG}': ${error.message}`);
+    adminErrorMessage = error?.message || "unknown admin query error";
+  } catch (error) {
+    adminErrorMessage = error instanceof Error ? error.message : String(error);
   }
 
-  cachedTenantId = data.id as string;
-  return cachedTenantId;
+  let sessionErrorMessage = "";
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("tenants")
+      .select("id")
+      .eq("slug", DEFAULT_TENANT_SLUG)
+      .single();
+
+    if (!error && data?.id) {
+      cachedTenantId = data.id as string;
+      return cachedTenantId;
+    }
+
+    sessionErrorMessage = error?.message || "unknown session query error";
+  } catch (error) {
+    sessionErrorMessage = error instanceof Error ? error.message : String(error);
+  }
+
+  throw new Error(
+    `Unable to resolve tenant '${DEFAULT_TENANT_SLUG}'. Admin query: ${adminErrorMessage}. Session query: ${sessionErrorMessage}`,
+  );
 }
 
 function isRoleAllowed(role: AppRole, allowedRoles: AppRole[]) {
   return allowedRoles.includes(role);
+}
+
+function isMissingOrStaleSessionError(error: unknown) {
+  const code = typeof error === "object" && error !== null ? String((error as { code?: string }).code || "") : "";
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+
+  return (
+    code === "refresh_token_not_found" ||
+    message.includes("auth session missing") ||
+    message.includes("invalid refresh token") ||
+    message.includes("refresh token not found")
+  );
+}
+
+function isSupabaseTimeoutError(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+  const causeCode =
+    typeof error === "object" && error !== null
+      ? String(((error as { cause?: { code?: string } }).cause?.code as string) || "")
+      : "";
+
+  return message.includes("fetch failed") || message.includes("connect timeout") || causeCode === "UND_ERR_CONNECT_TIMEOUT";
+}
+
+function isTenantPermissionError(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+  return message.includes("permission denied for schema public") || message.includes("permission denied");
 }
 
 export function hasAllowedRole(role: AppRole | null, allowedRoles: AppRole[]) {
@@ -119,9 +173,11 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   } = await supabase.auth.getUser();
 
   if (error) {
-    // Supabase returns this when no auth cookie/session is present.
-    if (error.message.toLowerCase().includes("auth session missing")) {
+    if (isMissingOrStaleSessionError(error)) {
       return null;
+    }
+    if (isSupabaseTimeoutError(error)) {
+      throw new AuthHttpError(503, "Authentication service unavailable.");
     }
     throw new AuthHttpError(401, error.message);
   }
@@ -130,7 +186,15 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     return null;
   }
 
-  const tenantId = await getDefaultTenantId();
+  let tenantId: string;
+  try {
+    tenantId = await getDefaultTenantId();
+  } catch (error) {
+    if (isTenantPermissionError(error)) {
+      return null;
+    }
+    throw error;
+  }
   const supabaseAdmin = createAdminClient() as any;
 
   const { data: membership, error: membershipError } = await supabaseAdmin

@@ -88,7 +88,7 @@ export default function CampaignDetailPage() {
                   <h4 className="font-display font-bold text-lg">Verified Stewardship</h4>
                 </div>
                 <p className="text-sm text-primary-foreground/70 leading-relaxed">
-                  Every dollar allocated to this mission is tracked and verified by regional stewards.
+                  Every rupee allocated to this mission is tracked and verified by regional stewards.
                 </p>
               </div>
             </motion.div>

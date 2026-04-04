@@ -60,7 +60,7 @@ export default function AboutPage() {
                   <Zap size={24} />
                 </div>
                 <p className="text-sm font-bold leading-tight">
-                  Real-time impact tracking for every dollar donated.
+                  Real-time impact tracking for every rupee donated.
                 </p>
               </div>
             </div>

@@ -12,6 +12,7 @@
     "db:schema": "bash scripts/apply-schema.sh",
     "db:seed": "node --env-file=.env.local scripts/seed-mock-data.mjs",
     "db:seed:auth": "node --env-file=.env.local scripts/seed-auth-users.mjs",
+    "db:seed:analytics": "node --env-file=.env.local scripts/seed-analytics-data.mjs",
     "db:seed:all": "npm run db:seed:auth && npm run db:seed",
     "db:seed:test": "npm run db:seed:all",
     "invoice:sample": "node scripts/generate-sample-invoice-pdf.mjs"
