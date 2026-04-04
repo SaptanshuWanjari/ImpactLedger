@@ -22,6 +22,43 @@ type CampaignsResponse = {
   campaigns: { id: string; title: string }[];
 };
 
+type RazorpayCheckoutResponse = {
+  donationId: string;
+  checkout: {
+    key: string;
+    orderId: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    prefill: {
+      name: string;
+      email: string;
+    };
+    notes?: Record<string, string>;
+  };
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+function loadRazorpayCheckoutScript() {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (window.Razorpay) return Promise.resolve(true);
+
+  return new Promise<boolean>((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 function DonatePageContent() {
   const searchParams = useSearchParams();
   const preselectedCampaignId = searchParams.get("campaignId");
@@ -55,7 +92,7 @@ function DonatePageContent() {
     setResultMessage(null);
 
     try {
-      const response = await fetchJson<{ checkoutUrl: string; donationId: string }>("/api/payments/checkout-session", {
+      const response = await fetchJson<RazorpayCheckoutResponse>("/api/payments/checkout-session", {
         method: "POST",
         body: JSON.stringify({
           fullName,
@@ -66,7 +103,34 @@ function DonatePageContent() {
         }),
       });
 
-      window.location.href = response.checkoutUrl;
+      const scriptLoaded = await loadRazorpayCheckoutScript();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error("Unable to load Razorpay checkout script.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: response.checkout.key,
+        order_id: response.checkout.orderId,
+        amount: response.checkout.amount,
+        currency: response.checkout.currency,
+        name: response.checkout.name,
+        description: response.checkout.description,
+        prefill: response.checkout.prefill,
+        notes: response.checkout.notes || {},
+        handler: () => {
+          window.location.href = `/donate/success?donationId=${encodeURIComponent(response.donationId)}`;
+        },
+        modal: {
+          ondismiss: () => {
+            window.location.href = `/donate/cancel?donationId=${encodeURIComponent(response.donationId)}`;
+          },
+        },
+        theme: {
+          color: "#00338D",
+        },
+      });
+
+      razorpay.open();
     } catch (error) {
       setResultMessage((error as Error).message);
     } finally {
@@ -112,7 +176,7 @@ function DonatePageContent() {
                       ))}
                     </div>
                     <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-display font-bold text-2xl text-muted-foreground">$</span>
+                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-display font-bold text-2xl text-muted-foreground">₹</span>
                       <input type="number" placeholder="Custom Amount" value={customAmount} onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null); }} className="w-full pl-12 pr-6 py-6 bg-muted/30 border-none rounded-2xl font-display font-bold text-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all" />
                     </div>
                   </motion.div>
@@ -210,12 +274,12 @@ function DonatePageContent() {
                 <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
                   <Lock size={20} />
                 </div>
-                <div>
-                  <p className="text-sm font-bold">Secure Verification</p>
-                  <p className="text-xs text-muted-foreground">Stripe Checkout securely handles payment and webhook verification.</p>
+                  <div>
+                    <p className="text-sm font-bold">Secure Verification</p>
+                  <p className="text-xs text-muted-foreground">Razorpay Checkout securely handles payment and webhook verification.</p>
+                  </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </main>

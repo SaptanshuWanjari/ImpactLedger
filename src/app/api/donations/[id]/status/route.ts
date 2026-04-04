@@ -9,11 +9,27 @@ export async function GET(
     const { id } = await context.params;
     const supabase = createAdminClient() as any;
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("donations")
-      .select("id,status,amount,currency,receipt_url,donated_at,stripe_checkout_session_id")
+      .select("id,status,amount,currency,receipt_url,donated_at,razorpay_order_id,razorpay_payment_id")
       .eq("id", id)
       .single();
+
+    if (error?.message?.includes("razorpay_order_id") || error?.message?.includes("razorpay_payment_id")) {
+      const fallback = await supabase
+        .from("donations")
+        .select("id,status,amount,currency,receipt_url,donated_at")
+        .eq("id", id)
+        .single();
+      data = fallback.data
+        ? {
+            ...fallback.data,
+            razorpay_order_id: null,
+            razorpay_payment_id: null,
+          }
+        : null;
+      error = fallback.error;
+    }
 
     if (error || !data) {
       return NextResponse.json({ error: error?.message || "Donation not found." }, { status: 404 });
@@ -27,7 +43,8 @@ export async function GET(
         currency: data.currency || "INR",
         receiptUrl: data.receipt_url || null,
         donatedAt: data.donated_at,
-        sessionId: data.stripe_checkout_session_id || null,
+        orderId: data.razorpay_order_id || null,
+        paymentId: data.razorpay_payment_id || null,
       },
     });
   } catch (error) {

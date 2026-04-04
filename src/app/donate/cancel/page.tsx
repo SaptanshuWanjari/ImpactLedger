@@ -17,7 +17,7 @@ function DonateCancelPageContent() {
         <div className="mx-auto max-w-3xl space-y-6 rounded-3xl border border-muted bg-white p-8 shadow-sm">
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Checkout Cancelled</h1>
           <p className="text-sm text-muted-foreground">
-            Your Stripe checkout was cancelled. No payment was confirmed.
+            Your Razorpay checkout was cancelled. No payment was confirmed.
           </p>
           {donationId && (
             <p className="text-xs text-muted-foreground">

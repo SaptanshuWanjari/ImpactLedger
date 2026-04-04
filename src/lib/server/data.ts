@@ -754,7 +754,7 @@ export async function getAdminSettings() {
     },
     integrations: {
       supabase: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-      stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+      razorpay: Boolean(process.env.RAZORPAY_KEY_ID) && Boolean(process.env.RAZORPAY_KEY_SECRET),
       defaultTenantSlug: DEFAULT_TENANT_SLUG,
     },
     security: {
@@ -817,7 +817,7 @@ export async function getAdminSettingsIntegrations() {
 
   return {
     supabase: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    stripe: Boolean(process.env.STRIPE_SECRET_KEY),
+    razorpay: Boolean(process.env.RAZORPAY_KEY_ID) && Boolean(process.env.RAZORPAY_KEY_SECRET),
     defaultTenantSlug: DEFAULT_TENANT_SLUG,
   };
 }
@@ -885,7 +885,7 @@ async function getVolunteerIdentityForCurrentUser() {
 
     const { data: volunteer, error: volunteerError } = await supabase
       .from("volunteer_profiles")
-      .select("id,full_name,email,skills,hours_logged,impact_score,certifications_count")
+      .select("id,full_name,email,hours_logged,impact_score,certifications_count")
       .eq("tenant_id", tenantId)
       .eq("email", DEFAULT_VOLUNTEER_EMAIL)
       .single();
@@ -906,7 +906,7 @@ async function getVolunteerIdentityForCurrentUser() {
 
   const { data: volunteer, error: volunteerError } = await supabase
     .from("volunteer_profiles")
-    .select("id,full_name,email,skills,hours_logged,impact_score,certifications_count")
+    .select("id,full_name,email,hours_logged,impact_score,certifications_count")
     .eq("tenant_id", tenantId)
     .eq("auth_user_id", user.id)
     .single();
@@ -989,19 +989,8 @@ export async function getVolunteerResourcesForCurrentUser() {
     href: "/volunteer/assignments",
   }));
 
-  const skillResources = (volunteer.skills || []).slice(0, 5).map((skill: string, index: number) => ({
-    id: `skill-${index + 1}`,
-    title: `${titleCase(skill.replaceAll("-", " "))} Reference`,
-    kind: "Reference",
-    audience: "Skill",
-    description: "Best-practice notes and quality checks mapped to your profile skills.",
-    ctaLabel: "View Notes",
-    href: "/volunteer/logs",
-  }));
-
   return {
     volunteerName: volunteer.full_name,
-    skills: volunteer.skills || [],
     assignments: (assignments || []).map((assignment) => ({
       id: assignment.id,
       title: assignment.title,
@@ -1149,7 +1138,6 @@ export async function getVolunteerSettingsForCurrentUser() {
       impactScore: Number(volunteer.impact_score || 0),
       certifications: Number(volunteer.certifications_count || 0),
     },
-    skills: volunteer.skills || [],
     account: {
       role: titleCase(role.replaceAll("_", " ")),
       userId,

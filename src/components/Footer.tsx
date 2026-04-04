@@ -17,24 +17,24 @@ const footerLinks = [
       { name: "Donate Now", href: "/donate" },
       { name: "Donor Portal", href: "/donor" },
       { name: "Transparency", href: "/transparency" },
-      { name: "Contact Us", href: "/contact" },
+      // { name: "Contact Us", href: "/contact" },
     ],
   },
-  {
-    title: "Legal",
-    links: [
-      { name: "Privacy Policy", href: "/privacy" },
-      { name: "Terms of Service", href: "/terms" },
-      { name: "Cookie Policy", href: "/cookies" },
-    ],
-  },
+  // {
+  //   title: "Legal",
+  //   links: [
+  //     { name: "Privacy Policy", href: "/privacy" },
+  //     { name: "Terms of Service", href: "/terms" },
+  //     { name: "Cookie Policy", href: "/cookies" },
+  //   ],
+  // },
 ];
 
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-muted pt-20 pb-10 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="flex justify-between  gap-12 mb-16">
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
@@ -84,11 +84,11 @@ export default function Footer() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Mail size={14} />
-              <span>contact@lions.org</span>
+              <span>impactledger@lions.org</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Phone size={14} />
-              <span>+1 (555) 123-4567</span>
+              <span>+91 7350557473</span>
             </div>
           </div>
         </div>

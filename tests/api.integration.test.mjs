@@ -106,7 +106,6 @@ async function ensureBaselineData() {
         tenant_id: tenantId,
         full_name: "Seed Volunteer",
         email: volunteerEmail,
-        skills: ["field-support"],
       })
       .select("id")
       .single();

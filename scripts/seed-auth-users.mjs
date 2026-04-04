@@ -114,7 +114,6 @@ async function upsertVolunteerProfile(tenantId, userId, email, fullName) {
       auth_user_id: userId,
       full_name: fullName,
       email,
-      skills: ["first-aid", "field-reporting"],
       certifications_count: 2,
       hours_logged: 42,
       impact_score: 87,

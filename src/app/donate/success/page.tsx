@@ -15,7 +15,8 @@ type DonationStatusResponse = {
     currency: string;
     receiptUrl: string | null;
     donatedAt: string;
-    sessionId: string | null;
+    orderId: string | null;
+    paymentId: string | null;
   };
 };
 
@@ -94,7 +95,7 @@ function DonateSuccessPageContent() {
               {status.receiptUrl && (
                 <p>
                   <a href={status.receiptUrl} target="_blank" rel="noreferrer" className="font-bold text-accent hover:underline">
-                    View Stripe receipt
+                    View payment receipt
                   </a>
                 </p>
               )}

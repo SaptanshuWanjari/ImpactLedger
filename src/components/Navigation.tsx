@@ -13,7 +13,7 @@ const navLinks = [
   { name: "Transparency", href: "/transparency", icon: ShieldCheck },
   { name: "Volunteer", href: "/volunteer", icon: HandHelping },
   { name: "About", href: "/about", icon: User },
-  { name: "Contact", href: "/contact", icon: Menu },
+  /* { name: "Contact", href: "/contact", icon: Menu }, */
 ];
 
 export default function Navigation() {

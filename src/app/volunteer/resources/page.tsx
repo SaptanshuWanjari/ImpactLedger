@@ -26,7 +26,6 @@ type Assignment = {
 
 type VolunteerResourcesResponse = {
   volunteerName: string;
-  skills: string[];
   assignments: Assignment[];
   resources: ResourceItem[];
 };

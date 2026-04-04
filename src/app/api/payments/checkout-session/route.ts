@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTenantId } from "@/lib/server/data";
-import { getAppUrl, getStripeClient } from "@/lib/server/stripe";
+import { createRazorpayOrder, getRazorpayConfig } from "@/lib/server/razorpay";
 
 type CheckoutRequest = {
   fullName?: string;
@@ -62,8 +62,9 @@ export async function POST(request: NextRequest) {
         amount,
         currency: CURRENCY,
         status: "pending",
-        payment_method: "Stripe Checkout",
+        payment_method: "Razorpay Checkout",
         source: "web",
+        payment_provider: "razorpay",
       })
       .select("id")
       .single();
@@ -75,47 +76,25 @@ export async function POST(request: NextRequest) {
       throw new Error("Donation could not be created.");
     }
 
-    const appUrl = getAppUrl();
-    const stripe = getStripeClient();
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: email,
-      success_url: `${appUrl}/donate/success?donationId=${donation.id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/donate/cancel?donationId=${donation.id}`,
-      metadata: {
+    const order = await createRazorpayOrder({
+      amountInPaise: Math.round(amount * 100),
+      currency: CURRENCY,
+      receipt: donation.id,
+      notes: {
         donation_id: donation.id,
         tenant_id: tenantId,
+        donor_email: email,
       },
-      payment_intent_data: {
-        metadata: {
-          donation_id: donation.id,
-          tenant_id: tenantId,
-        },
-      },
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: CURRENCY.toLowerCase(),
-            unit_amount: Math.round(amount * 100),
-            product_data: {
-              name: "Impact Ledger Donation",
-              description: body.campaignId ? "Campaign donation" : "General fund donation",
-            },
-          },
-        },
-      ],
     });
 
-    const { error: sessionUpdateError } = await supabase
+    const { error: orderUpdateError } = await supabase
       .from("donations")
-      .update({ stripe_checkout_session_id: session.id })
+      .update({ razorpay_order_id: order.id })
       .eq("id", donation.id)
       .eq("tenant_id", tenantId);
 
-    if (sessionUpdateError) {
-      throw new Error(sessionUpdateError.message);
+    if (orderUpdateError) {
+      throw new Error(orderUpdateError.message);
     }
 
     const { error: ledgerError } = await supabase.from("donation_ledger").insert({
@@ -126,9 +105,9 @@ export async function POST(request: NextRequest) {
       event_type: "donation_created",
       amount,
       currency: CURRENCY,
-      stripe_checkout_session_id: session.id,
+      provider_order_id: order.id,
       source: "checkout_api",
-      metadata: { email },
+      metadata: { email, provider: "razorpay" },
     });
     if (ledgerError) {
       throw new Error(ledgerError.message);
@@ -144,19 +123,35 @@ export async function POST(request: NextRequest) {
         amount,
         currency: CURRENCY,
         campaign_id: body.campaignId || null,
-        stripe_checkout_session_id: session.id,
+        provider: "razorpay",
+        provider_order_id: order.id,
       },
     });
     if (auditError) {
       throw new Error(auditError.message);
     }
 
-    if (!session.url) {
-      throw new Error("Stripe checkout URL was not returned.");
-    }
+    const { keyId } = getRazorpayConfig();
 
     return NextResponse.json(
-      { checkoutUrl: session.url, donationId: donation.id, sessionId: session.id },
+      {
+        donationId: donation.id,
+        checkout: {
+          key: keyId,
+          orderId: order.id,
+          amount: order.amount,
+          currency: order.currency,
+          name: "Impact Ledger Donation",
+          description: body.campaignId ? "Campaign donation" : "General fund donation",
+          prefill: {
+            name: fullName,
+            email,
+          },
+          notes: {
+            donation_id: donation.id,
+          },
+        },
+      },
       { status: 201 },
     );
   } catch (error) {

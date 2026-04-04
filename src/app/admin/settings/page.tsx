@@ -21,7 +21,7 @@ type MembershipSettings = {
 
 type IntegrationsSettings = {
   supabase: boolean;
-  stripe: boolean;
+  razorpay: boolean;
   defaultTenantSlug: string;
 };
 
@@ -95,7 +95,7 @@ export default function AdminSettingsPage() {
           <section className="no-line-card p-6 space-y-4">
             <h2 className="font-display font-bold text-xl">Integrations</h2>
             <IntegrationRow label="Supabase" enabled={Boolean(integrations.data?.supabase)} />
-            <IntegrationRow label="Stripe" enabled={Boolean(integrations.data?.stripe)} />
+            <IntegrationRow label="Razorpay" enabled={Boolean(integrations.data?.razorpay)} />
             <SettingRow label="Default Tenant Slug" value={integrations.data?.defaultTenantSlug || "—"} mono />
           </section>
 

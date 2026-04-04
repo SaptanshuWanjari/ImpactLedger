@@ -118,7 +118,7 @@ export default function AboutPage() {
           </section>
 
           {/* Team Section Placeholder */}
-          <section className="space-y-16">
+          {/* <section className="space-y-16">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="space-y-4">
                 <h2 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight">The Stewards.</h2>
@@ -152,7 +152,7 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </section>
+          </section> */}
 
           {/* CTA Section */}
           <section className="no-line-card p-16 bg-accent text-white text-center space-y-8 relative overflow-hidden">
