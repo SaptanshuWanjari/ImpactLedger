@@ -33,11 +33,19 @@ const steps = ["Amount", "Details", "Payment", "Review"];
 const paymentMethods = [
   {
     id: "wallet",
-    name: "UPI",
+    name: "Razorpay (Automated)",
     icon: Wallet,
-    description: "Any UPI app (Google Pay, PhonePe, Paytm, BHIM)",
+    description: "Credit/Debit Cards, UPI, Netbanking",
+  },
+  {
+    id: "gpay_qr",
+    name: "Google Pay QR (Manual)",
+    icon: ShieldCheck,
+    description: "Scan QR code to pay manually",
   },
 ];
+
+const STATIC_QR_URL = "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg";
 
 type CampaignsResponse = {
   campaigns: { id: string; title: string }[];
@@ -127,8 +135,8 @@ function DonatePageContent() {
   const canProceedStep = useMemo(() => {
     if (currentStep === 0) return hasValidAmount;
     if (currentStep === 1) return hasValidAmount && hasValidDetails;
-    if (currentStep === 2) return hasValidAmount && hasValidDetails && selectedMethod === "wallet";
-    return hasValidAmount && hasValidDetails && selectedMethod === "wallet";
+    if (currentStep === 2) return hasValidAmount && hasValidDetails && (selectedMethod === "wallet" || selectedMethod === "gpay_qr");
+    return hasValidAmount && hasValidDetails && (selectedMethod === "wallet" || selectedMethod === "gpay_qr");
   }, [currentStep, hasValidAmount, hasValidDetails, selectedMethod]);
 
   async function submitDonation() {
@@ -136,8 +144,8 @@ function DonatePageContent() {
       setResultMessage("Enter a valid INR amount, full name, and email before continuing.");
       return;
     }
-    if (selectedMethod !== "wallet") {
-      setResultMessage("Only UPI payments are supported.");
+    if (selectedMethod !== "wallet" && selectedMethod !== "gpay_qr") {
+      setResultMessage("Invalid payment method selected.");
       return;
     }
 
@@ -145,7 +153,7 @@ function DonatePageContent() {
     setResultMessage(null);
 
     try {
-      const response = await fetchJson<RazorpayCheckoutResponse>(
+      const response = await fetchJson<any>(
         "/api/payments/checkout-session",
         {
           method: "POST",
@@ -155,9 +163,15 @@ function DonatePageContent() {
             amount: amountNumber,
             campaignId: campaignId === "general" ? null : campaignId,
             isAnonymous,
+            provider: selectedMethod === "gpay_qr" ? "gpay" : "razorpay",
           }),
         },
       );
+
+      if (response.manual) {
+        window.location.href = `/donate/manual-success?donationId=${encodeURIComponent(response.donationId)}`;
+        return;
+      }
 
       const scriptLoaded = await loadRazorpayCheckoutScript();
       if (!scriptLoaded || !window.Razorpay) {
@@ -410,7 +424,7 @@ function DonatePageContent() {
                       <ShieldCheck size={40} />
                     </div>
                     <h3 className="text-3xl font-display font-bold">
-                      Review & Confirm
+                      {selectedMethod === "gpay_qr" ? "Scan to Pay" : "Review & Confirm"}
                     </h3>
                     <div className="bg-muted/30 p-8 rounded-3xl mb-5 space-y-4 max-w-md mx-auto text-left">
                       <div className="flex justify-between">
@@ -430,6 +444,12 @@ function DonatePageContent() {
                           }
                         </span>
                       </div>
+                      {selectedMethod === "gpay_qr" && (
+                        <div className="mt-6 flex flex-col items-center justify-center pt-4 border-t border-muted">
+                           <p className="text-sm text-center mb-4 text-muted-foreground">Scan the QR code with your Google Pay app to complete the transaction of {finalAmountLabel}.</p>
+                           <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-48 h-48 rounded-lg shadow-sm border border-muted" />
+                        </div>
+                      )}
                     </div>
                     {resultMessage && (
                       <p className="text-sm text-red-600">
@@ -467,7 +487,7 @@ function DonatePageContent() {
                   {currentStep === steps.length - 1
                     ? submitting
                       ? "Submitting..."
-                      : "Finalize Stewardship"
+                      : selectedMethod === "gpay_qr" ? "I've Paid" : "Finalize Stewardship"
                     : "Continue"}
                   <ArrowRight size={18} />
                 </button>
