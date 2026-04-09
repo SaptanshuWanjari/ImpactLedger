@@ -9,6 +9,7 @@ type CheckoutRequest = {
   amount?: number;
   campaignId?: string | null;
   isAnonymous?: boolean;
+  provider?: "razorpay" | "gpay";
 };
 
 const CURRENCY = "INR";
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
     const amount = Number(body.amount || 0);
     const fullName = (body.fullName || "").trim();
     const email = (body.email || "").trim().toLowerCase();
+    const provider = body.provider || "razorpay";
 
     if (!fullName || !email || amount <= 0) {
       return NextResponse.json(
@@ -62,9 +64,9 @@ export async function POST(request: NextRequest) {
         amount,
         currency: CURRENCY,
         status: "pending",
-        payment_method: "UPI",
+        payment_method: provider === "gpay" ? "GPay QR" : "UPI",
         source: "web",
-        payment_provider: "razorpay",
+        payment_provider: provider,
       })
       .select("id")
       .single();
@@ -74,6 +76,45 @@ export async function POST(request: NextRequest) {
     }
     if (!donation) {
       throw new Error("Donation could not be created.");
+    }
+
+    if (provider === "gpay") {
+      const { error: ledgerError } = await supabase.from("donation_ledger").insert({
+        tenant_id: tenantId,
+        donation_id: donation.id,
+        donor_id: donor.id,
+        campaign_id: body.campaignId || null,
+        event_type: "donation_created",
+        amount,
+        currency: CURRENCY,
+        provider_order_id: null,
+        source: "checkout_api",
+        metadata: { email, provider: "gpay" },
+      });
+      if (ledgerError) throw new Error(ledgerError.message);
+
+      const { error: auditError } = await supabase.from("audit_logs").insert({
+        tenant_id: tenantId,
+        actor_email: email,
+        action: "donation_created",
+        target_type: "donation",
+        target_id: donation.id,
+        metadata: {
+          amount,
+          currency: CURRENCY,
+          campaign_id: body.campaignId || null,
+          provider: "gpay",
+        },
+      });
+      if (auditError) throw new Error(auditError.message);
+
+      return NextResponse.json(
+        {
+          donationId: donation.id,
+          manual: true,
+        },
+        { status: 201 },
+      );
     }
 
     const order = await createRazorpayOrder({
@@ -136,6 +177,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         donationId: donation.id,
+        manual: false,
         checkout: {
           key: keyId,
           orderId: order.id,
