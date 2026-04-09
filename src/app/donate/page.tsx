@@ -45,7 +45,7 @@ const paymentMethods = [
   },
 ];
 
-const STATIC_QR_URL = "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg";
+const STATIC_QR_URL = "/GPAY_QR.jpeg";
 
 type CampaignsResponse = {
   campaigns: { id: string; title: string }[];
@@ -445,9 +445,32 @@ function DonatePageContent() {
                         </span>
                       </div>
                       {selectedMethod === "gpay_qr" && (
-                        <div className="mt-6 flex flex-col items-center justify-center pt-4 border-t border-muted">
-                           <p className="text-sm text-center mb-4 text-muted-foreground">Scan the QR code with your Google Pay app to complete the transaction of {finalAmountLabel}.</p>
-                           <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-48 h-48 rounded-lg shadow-sm border border-muted" />
+                        <div className="mt-8 pt-6 border-t border-muted flex flex-col items-center">
+                           <p className="text-sm text-center mb-6 text-muted-foreground">
+                             Scan the QR code with your Google Pay app to complete the transaction of {finalAmountLabel}.
+                           </p>
+                           
+                           <div className="bg-slate-50 w-[300px] rounded-[1.5rem] shadow-sm border border-slate-200 p-6 flex flex-col items-center">
+                             <div className="flex items-center gap-2 mb-4 w-full justify-center">
+                               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                                 {fullName ? fullName.substring(0, 2).toUpperCase() : "IL"}
+                               </div>
+                               <span className="font-semibold text-slate-800 text-sm">
+                                 {fullName || "Impact Ledger"}
+                               </span>
+                             </div>
+                             
+                             <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 w-full flex flex-col items-center">
+                               <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-40 h-40 object-cover" />
+                               <p className="text-[10px] font-medium text-slate-500 mt-3 mb-1">
+                                 UPI ID: admin@impactledger
+                               </p>
+                             </div>
+                             
+                             <p className="text-[10px] text-slate-400 mt-4 text-center">
+                               Scan to pay with any UPI app
+                             </p>
+                           </div>
                         </div>
                       )}
                     </div>
@@ -504,17 +527,6 @@ function DonatePageContent() {
                 <p className="text-3xl font-display font-extrabold text-blue-400">{finalAmountLabel}</p>
               </div>
 
-              <div className="no-line-card p-6 border border-muted flex items-center gap-4">
-                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center text-muted-foreground">
-                  <Lock size={20} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold">Secure Verification</p>
-                  <p className="text-xs text-muted-foreground">
-                    Razorpay UPI checkout securely handles payment and webhook verification.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

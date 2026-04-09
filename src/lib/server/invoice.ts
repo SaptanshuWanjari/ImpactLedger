@@ -17,6 +17,8 @@ type DonationRow = {
   donated_at: string;
   receipt_url: string | null;
   campaigns: { title: string | null } | null;
+  payment_method: string | null;
+  payment_provider: string | null;
 };
 
 function resolveAppUrl(origin?: string) {
@@ -40,6 +42,8 @@ async function sendViaResend(input: {
   donationId: string;
   receiptUrl: string;
   orgName: string;
+  paymentMethod?: string | null;
+  paymentProvider?: string | null;
 }) {
   const resendApiKey = process.env.RESEND_API_KEY;
   const from = process.env.DONATION_INVOICE_FROM_EMAIL || "Impact Ledger <donations@impactledger.app>";
@@ -77,6 +81,8 @@ async function sendViaResend(input: {
     donatedAtIso: input.donatedAt,
     orgName: input.orgName,
     receiptUrl: input.receiptUrl,
+    paymentMethod: input.paymentMethod,
+    paymentProvider: input.paymentProvider,
   });
   const encodedPdf = pdf.toString("base64");
 
@@ -117,7 +123,7 @@ export async function dispatchDonationInvoice(input: {
 
   const { data, error } = await supabase
     .from("donations")
-    .select("id,tenant_id,donor_email,donor_name,amount,status,donated_at,receipt_url,campaigns(title)")
+    .select("id,tenant_id,donor_email,donor_name,amount,status,donated_at,receipt_url,campaigns(title),payment_method,payment_provider")
     .eq("id", input.donationId)
     .single();
 
@@ -191,6 +197,8 @@ export async function dispatchDonationInvoice(input: {
     donationId: donation.id,
     receiptUrl,
     orgName,
+    paymentMethod: donation.payment_method,
+    paymentProvider: donation.payment_provider,
   });
 
   const status = sendResult.sent

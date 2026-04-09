@@ -113,6 +113,8 @@ export function createDonationReceiptPdf(input: {
   donatedAtIso: string;
   orgName: string;
   receiptUrl: string;
+  paymentMethod?: string | null;
+  paymentProvider?: string | null;
 }) {
   const paidOn = new Date(input.donatedAtIso).toLocaleString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -134,7 +136,7 @@ export function createDonationReceiptPdf(input: {
 
   commands.push(textCommand({ x: 400, y: 806, size: 11, text: "DONATION RECEIPT", color: [1, 1, 1] }));
   commands.push(textCommand({ x: 400, y: 790, size: 9, text: "Status: Succeeded", color: [0.8, 0.94, 0.82] }));
-  commands.push(textCommand({ x: 400, y: 776, size: 9, text: "Payment Method: UPI", color: [0.86, 0.9, 0.96] }));
+  commands.push(textCommand({ x: 400, y: 776, size: 9, text: `Payment Method: ${input.paymentMethod || "UPI"}`, color: [0.86, 0.9, 0.96] }));
 
   commands.push(textCommand({ x: 44, y: 720, size: 13, text: "Transaction Summary" }));
   commands.push(lineCommand({ x1: 44, y1: 714, x2: 551, y2: 714, stroke: [0.9, 0.9, 0.9] }));
@@ -170,8 +172,9 @@ export function createDonationReceiptPdf(input: {
   commands.push(lineCommand({ x1: 44, y1: 570, x2: 551, y2: 570, stroke: [0.9, 0.9, 0.9] }));
   commands.push(textCommand({ x: 44, y: 546, size: 12, text: "Verification Note" }));
 
+  const providerName = input.paymentProvider === "gpay" ? "Google Pay QR" : "Razorpay UPI";
   const verificationParagraphs = [
-    "This receipt confirms that your donation has been captured through Razorpay UPI and recorded in Impact Ledger.",
+    `This receipt confirms that your donation has been captured through ${providerName} and recorded in Impact Ledger.`,
     "All stewardship events are reconciled through API and webhook verification to maintain radical transparency.",
   ];
 
