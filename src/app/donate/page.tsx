@@ -445,29 +445,31 @@ function DonatePageContent() {
                         </span>
                       </div>
                       {selectedMethod === "gpay_qr" && (
-                        <div className="mt-8 pt-6 border-t border-muted flex flex-col items-center">
-                           <p className="text-sm text-center mb-6 text-muted-foreground">
+                        <div className="mt-8 pt-8 border-t border-muted flex flex-col items-center">
+                           <p className="text-sm text-center mb-8 text-muted-foreground max-w-sm">
                              Scan the QR code with your Google Pay app to complete the transaction of {finalAmountLabel}.
                            </p>
                            
-                           <div className="bg-slate-50 w-[300px] rounded-[1.5rem] shadow-sm border border-slate-200 p-6 flex flex-col items-center">
-                             <div className="flex items-center gap-2 mb-4 w-full justify-center">
-                               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                           <div className="bg-[#f8f9fc] border border-slate-100 shadow-sm w-full max-w-[320px] rounded-3xl p-6 flex flex-col items-center">
+                             <div className="flex items-center justify-center gap-2 mb-4">
+                               <div className="w-6 h-6 bg-[#001d6c] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
                                  {fullName ? fullName.substring(0, 2).toUpperCase() : "IL"}
                                </div>
-                               <span className="font-semibold text-slate-800 text-sm">
+                               <span className="font-semibold text-slate-800 text-[15px]">
                                  {fullName || "Impact Ledger"}
                                </span>
                              </div>
                              
-                             <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 w-full flex flex-col items-center">
-                               <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-40 h-40 object-cover" />
-                               <p className="text-[10px] font-medium text-slate-500 mt-3 mb-1">
-                                 UPI ID: admin@impactledger
-                               </p>
+                             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 w-full flex flex-col items-center">
+                               <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-full aspect-square object-contain" />
+                               <div className="flex items-center justify-center mt-1 mb-2">
+                                 <p className="text-[10px] font-medium text-slate-500">
+                                   UPI ID: admin@impactledger
+                                 </p>
+                               </div>
                              </div>
                              
-                             <p className="text-[10px] text-slate-400 mt-4 text-center">
+                             <p className="text-[10px] text-slate-400 mt-4 text-center font-medium">
                                Scan to pay with any UPI app
                              </p>
                            </div>

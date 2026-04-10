@@ -1,0 +1,248 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2568 >>
+stream
+0.08 0.08 0.08 rg
+0 752 595 90 re
+f
+0 0.2 0.55 rg
+0 744 595 8 re
+f
+1 1 1 rg
+BT
+/F1 22 Tf
+44 806 Td
+(Impact Ledger) Tj
+ET
+0.86 0.9 0.96 rg
+BT
+/F1 10 Tf
+44 786 Td
+(Secure Stewardship Receipt) Tj
+ET
+0.72 0.78 0.86 rg
+BT
+/F1 9 Tf
+44 772 Td
+(Lions NGO Management System) Tj
+ET
+1 1 1 rg
+BT
+/F1 11 Tf
+400 806 Td
+(DONATION RECEIPT) Tj
+ET
+0.8 0.94 0.82 rg
+BT
+/F1 9 Tf
+400 790 Td
+(Status: Succeeded) Tj
+ET
+0.86 0.9 0.96 rg
+BT
+/F1 9 Tf
+400 776 Td
+(Payment Method: Google Pay QR \(Manual\)) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 13 Tf
+44 720 Td
+(Transaction Summary) Tj
+ET
+0.9 0.9 0.9 RG
+1 w
+44 714 m
+551 714 l
+S
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+44 688 Td
+(Receipt ID) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+170 688 Td
+(IL-DON-855189) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+44 660 Td
+(Donor Name) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+170 660 Td
+(Saptanshu) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+44 632 Td
+(Donor Email) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+170 632 Td
+(saptanshu@example.com) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+44 604 Td
+(Campaign) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+170 604 Td
+(General Impact Fund) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+340 688 Td
+(Amount) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+440 688 Td
+(INR 2,000.00) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+340 660 Td
+(Currency) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+440 660 Td
+(INR) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+340 632 Td
+(Paid On \(IST\)) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+440 632 Td
+(10/4/2026, 1:29:52 pm) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 9 Tf
+340 604 Td
+(Source) Tj
+ET
+0.08 0.08 0.08 rg
+BT
+/F1 11 Tf
+440 604 Td
+(Impact Ledger Web Checkout) Tj
+ET
+0.9 0.9 0.9 RG
+1 w
+44 570 m
+551 570 l
+S
+0.08 0.08 0.08 rg
+BT
+/F1 12 Tf
+44 546 Td
+(Verification Note) Tj
+ET
+0.2 0.2 0.2 rg
+BT
+/F1 10 Tf
+44 522 Td
+(This receipt confirms that your donation has been captured through Google Pay QR and) Tj
+ET
+0.2 0.2 0.2 rg
+BT
+/F1 10 Tf
+44 506 Td
+(recorded in Impact Ledger.) Tj
+ET
+0.2 0.2 0.2 rg
+BT
+/F1 10 Tf
+44 482 Td
+(All stewardship events are reconciled through API and webhook verification to maintain) Tj
+ET
+0.2 0.2 0.2 rg
+BT
+/F1 10 Tf
+44 466 Td
+(radical transparency.) Tj
+ET
+0.45 0.45 0.45 rg
+BT
+/F1 10 Tf
+44 428 Td
+(Receipt URL) Tj
+ET
+0 0.2 0.55 rg
+BT
+/F1 10 Tf
+44 410 Td
+(https://impactledger.app/receipts/sample-receipt) Tj
+ET
+0.97 0.97 0.97 rg
+0 0 595 70 re
+f
+0.1 0.1 0.1 rg
+BT
+/F1 9 Tf
+44 42 Td
+(Impact Ledger • Fund the Mission) Tj
+ET
+0.4 0.4 0.4 rg
+BT
+/F1 8 Tf
+44 26 Td
+(Empowering modern humanitarian stewardship with radical transparency.) Tj
+ET
+0.4 0.4 0.4 rg
+BT
+/F1 8 Tf
+415 26 Td
+(Generated: 10/4/2026, 1:29:52 pm) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000002860 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2930
+%%EOF
