@@ -136,7 +136,7 @@ export function createDonationReceiptPdf(input: {
 
   commands.push(textCommand({ x: 400, y: 806, size: 11, text: "DONATION RECEIPT", color: [1, 1, 1] }));
   commands.push(textCommand({ x: 400, y: 790, size: 9, text: "Status: Succeeded", color: [0.8, 0.94, 0.82] }));
-  commands.push(textCommand({ x: 400, y: 776, size: 9, text: `Payment Method: ${input.paymentMethod || "UPI"}`, color: [0.86, 0.9, 0.96] }));
+  commands.push(textCommand({ x: 400, y: 776, size: 9, text: `Payment Method: ${input.paymentMethod || "Razor Pay"}`, color: [0.86, 0.9, 0.96] }));
 
   commands.push(textCommand({ x: 44, y: 720, size: 13, text: "Transaction Summary" }));
   commands.push(lineCommand({ x1: 44, y1: 714, x2: 551, y2: 714, stroke: [0.9, 0.9, 0.9] }));
