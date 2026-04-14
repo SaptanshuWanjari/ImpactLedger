@@ -24,6 +24,7 @@ type RazorpayPaymentEntity = {
   order_id?: string;
   amount?: number;
   currency?: string;
+  method?: string;
   status?: string;
   error_description?: string;
   notes?: Record<string, unknown>;
@@ -50,7 +51,7 @@ async function getDonationByOrderId(orderId: string) {
   const supabase = createAdminClient() as any;
   const { data } = await supabase
     .from("donations")
-    .select("id,tenant_id,donor_id,campaign_id,amount,currency,refunded_amount")
+    .select("id,tenant_id,donor_id,campaign_id,amount,currency,refunded_amount,payment_method")
     .eq("razorpay_order_id", orderId)
     .maybeSingle();
   return data;
@@ -60,10 +61,17 @@ async function getDonationByPaymentId(paymentId: string) {
   const supabase = createAdminClient() as any;
   const { data } = await supabase
     .from("donations")
-    .select("id,tenant_id,donor_id,campaign_id,amount,currency,refunded_amount")
+    .select("id,tenant_id,donor_id,campaign_id,amount,currency,refunded_amount,payment_method")
     .eq("razorpay_payment_id", paymentId)
     .maybeSingle();
   return data;
+}
+
+function resolvePaymentMethodLabel(method?: string | null, fallback?: string | null) {
+  if (method === "card") return "Card";
+  if (method === "upi") return "UPI";
+  if (fallback === "Card" || fallback === "UPI") return fallback;
+  return "UPI";
 }
 
 async function updateDonation(donationId: string, tenantId: string, updates: DonationUpdate) {
@@ -152,7 +160,7 @@ async function handlePaymentCaptured(payload: RazorpayWebhookEvent, eventKey: st
     failure_reason: null,
     receipt_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/donate/success?donationId=${encodeURIComponent(donation.id)}`,
     currency: "INR",
-    payment_method: "UPI",
+    payment_method: resolvePaymentMethodLabel(payment.method, donation.payment_method),
     payment_provider: "razorpay",
   });
 
@@ -199,7 +207,7 @@ async function handlePaymentFailed(payload: RazorpayWebhookEvent, eventKey: stri
     razorpay_payment_id: payment.id,
     provider_event_last_id: eventKey,
     failure_reason: payment.error_description || "Payment failed",
-    payment_method: "UPI",
+    payment_method: resolvePaymentMethodLabel(payment.method, donation.payment_method),
     currency: "INR",
     payment_provider: "razorpay",
   });
@@ -240,7 +248,7 @@ async function handleRefund(payload: RazorpayWebhookEvent, eventKey: string) {
     razorpay_payment_id: refund.payment_id,
     provider_event_last_id: eventKey,
     refunded_amount: totalRefunded,
-    payment_method: "UPI",
+    payment_method: resolvePaymentMethodLabel(undefined, donation.payment_method),
     currency: "INR",
     payment_provider: "razorpay",
   });

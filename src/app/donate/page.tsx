@@ -1,59 +1,35 @@
 "use client";
 
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import PaymentStepper from "@/components/PaymentStepper";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Wallet,
-  ShieldCheck,
-  Heart,
-  Lock,
-  ArrowRight,
-  ArrowLeft,
-  CheckCircle2,
-} from "lucide-react";
 import { Suspense, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import {
+  Check,
+  CheckCircle2,
+  CreditCard,
+  HeartHandshake,
+  Lock,
+  QrCode,
+  ShieldCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
 import { fetchJson, useApiData } from "@/lib/api/client";
-import { useSearchParams } from "next/navigation";
-
-const steps = ["Amount", "Details", "Payment", "Review"];
-
-const paymentMethods = [
-  {
-    id: "wallet",
-    name: "Razorpay (Automated)",
-    icon: Wallet,
-    description: "Credit/Debit Cards, UPI, Netbanking",
-  },
-  {
-    id: "gpay_qr",
-    name: "Google Pay QR (Manual)",
-    icon: ShieldCheck,
-    description: "Scan QR code to pay manually",
-  },
-];
-
-const STATIC_QR_URL = "/GPAY_QR.jpeg";
 
 type CampaignsResponse = {
   campaigns: { id: string; title: string }[];
 };
 
-type RazorpayCheckoutResponse = {
+type RazorpaySuccessPayload = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
+
+type CheckoutResponse = {
   donationId: string;
-  checkout: {
+  manual: boolean;
+  checkout?: {
     key: string;
     orderId: string;
     amount: number;
@@ -68,17 +44,13 @@ type RazorpayCheckoutResponse = {
   };
 };
 
-type RazorpaySuccessPayload = {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
-};
-
 declare global {
   interface Window {
     Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
   }
 }
+
+const amountOptions = [500, 1000, 2000, 5000];
 
 function loadRazorpayCheckoutScript() {
   if (typeof window === "undefined") return Promise.resolve(false);
@@ -100,52 +72,38 @@ function DonatePageContent() {
 
   const { data } = useApiData<CampaignsResponse>("/api/campaigns");
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedAmount, setSelectedAmount] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedAmount, setSelectedAmount] = useState<number>(1000);
   const [customAmount, setCustomAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("wallet");
+  const [selectedMethod, setSelectedMethod] = useState<"card" | "upi">("upi");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [campaignId, setCampaignId] = useState<string>(
-    preselectedCampaignId || "general",
-  );
+  const [phone, setPhone] = useState("");
+  const [campaignId, setCampaignId] = useState<string>(preselectedCampaignId || "general");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
 
-  const nextStep = () =>
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
-
   const amountNumber = useMemo(() => {
-    const fromSelected = selectedAmount
-      ? Number(selectedAmount.replace(/[^\d.]/g, ""))
-      : 0;
     const fromCustom = customAmount ? Number(customAmount) : 0;
-    return fromCustom > 0 ? Math.floor(fromCustom) : Math.floor(fromSelected);
-  }, [selectedAmount, customAmount]);
+    return fromCustom > 0 ? Math.floor(fromCustom) : selectedAmount;
+  }, [customAmount, selectedAmount]);
 
-  const finalAmountLabel = new Intl.NumberFormat("en-IN", {
+  const amountLabel = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
+    maximumFractionDigits: 0,
   }).format(amountNumber || 0);
 
   const hasValidAmount = Number.isFinite(amountNumber) && amountNumber > 0;
-  const hasValidDetails = Boolean(fullName.trim()) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const canProceedStep = useMemo(() => {
-    if (currentStep === 0) return hasValidAmount;
-    if (currentStep === 1) return hasValidAmount && hasValidDetails;
-    if (currentStep === 2) return hasValidAmount && hasValidDetails && (selectedMethod === "wallet" || selectedMethod === "gpay_qr");
-    return hasValidAmount && hasValidDetails && (selectedMethod === "wallet" || selectedMethod === "gpay_qr");
-  }, [currentStep, hasValidAmount, hasValidDetails, selectedMethod]);
+  const hasValidName = fullName.trim().length >= 2;
+  const hasValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const hasValidPhone = !phone.trim() || /^\+?[\d\s-]{8,16}$/.test(phone.trim());
+  const hasValidDetails = hasValidName && hasValidEmail && hasValidPhone;
 
   async function submitDonation() {
     if (!hasValidAmount || !hasValidDetails) {
-      setResultMessage("Enter a valid INR amount, full name, and email before continuing.");
-      return;
-    }
-    if (selectedMethod !== "wallet" && selectedMethod !== "gpay_qr") {
-      setResultMessage("Invalid payment method selected.");
+      setResultMessage("Complete amount and contact details before payment.");
       return;
     }
 
@@ -153,24 +111,22 @@ function DonatePageContent() {
     setResultMessage(null);
 
     try {
-      const response = await fetchJson<any>(
-        "/api/payments/checkout-session",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            fullName,
-            email,
-            amount: amountNumber,
-            campaignId: campaignId === "general" ? null : campaignId,
-            isAnonymous,
-            provider: selectedMethod === "gpay_qr" ? "gpay" : "razorpay",
-          }),
-        },
-      );
+      const response = await fetchJson<CheckoutResponse>("/api/payments/checkout-session", {
+        method: "POST",
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          amount: amountNumber,
+          campaignId: campaignId === "general" ? null : campaignId,
+          paymentMethod: selectedMethod,
+          isAnonymous,
+          provider: "razorpay",
+        }),
+      });
 
-      if (response.manual) {
-        window.location.href = `/donate/manual-success?donationId=${encodeURIComponent(response.donationId)}`;
-        return;
+      if (!response.checkout) {
+        throw new Error("Checkout details are missing from the payment response.");
       }
 
       const scriptLoaded = await loadRazorpayCheckoutScript();
@@ -189,7 +145,7 @@ function DonatePageContent() {
         notes: response.checkout.notes || {},
         method: {
           upi: true,
-          card: false,
+          card: true,
           netbanking: false,
           wallet: false,
           emi: false,
@@ -198,12 +154,16 @@ function DonatePageContent() {
         config: {
           display: {
             blocks: {
+              card: {
+                name: "Pay by Card",
+                instruments: [{ method: "card" }],
+              },
               upi: {
                 name: "Pay via UPI",
                 instruments: [{ method: "upi" }],
               },
             },
-            sequence: ["block.upi"],
+            sequence: selectedMethod === "card" ? ["block.card", "block.upi"] : ["block.upi", "block.card"],
             preferences: {
               show_default_blocks: false,
             },
@@ -219,6 +179,7 @@ function DonatePageContent() {
               razorpaySignature: paymentResult.razorpay_signature,
             }),
           });
+
           window.location.href = `/donate/success?donationId=${encodeURIComponent(response.donationId)}`;
         },
         modal: {
@@ -227,7 +188,7 @@ function DonatePageContent() {
           },
         },
         theme: {
-          color: "#00338D",
+          color: "#0b4abf",
         },
       });
 
@@ -239,309 +200,291 @@ function DonatePageContent() {
     }
   }
 
+  function goNext() {
+    if (currentStep === 1 && !hasValidAmount) {
+      setResultMessage("Please select a valid amount.");
+      return;
+    }
+    if (currentStep === 2 && !hasValidDetails) {
+      setResultMessage("Please provide valid contact details.");
+      return;
+    }
+
+    setResultMessage(null);
+    setCurrentStep((prev) => Math.min(3, prev + 1));
+  }
+
+  function goBack() {
+    setResultMessage(null);
+    setCurrentStep((prev) => Math.max(1, prev - 1));
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navigation />
-
-      <main className="grow pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto space-y-12">
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <p className="text-accent font-bold uppercase tracking-widest text-xs">
-              Secure Stewardship
-            </p>
-            <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
-              Fund the Mission.
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Your contribution is transparent and API-verified.
-            </p>
-          </div>
-
-          <PaymentStepper currentStep={currentStep} steps={steps} />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-            <div className="lg:col-span-2 no-line-card p-8 md:p-12 bg-white shadow-2xl border border-muted ring-1 ring-black/5 min-h-[500px] flex flex-col">
-              <AnimatePresence mode="wait">
-                {currentStep === 0 && (
-                  <motion.div
-                    key="step-0"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-8 grow"
-                  >
-                    <h3 className="text-2xl font-display font-bold">
-                      Select Donation Amount
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {["₹100", "₹500", "₹1000", "₹2000"].map((amount) => (
-                        <button
-                          key={amount}
-                          onClick={() => {
-                            setSelectedAmount(amount);
-                            setCustomAmount("");
-                          }}
-                          className={cn(
-                            "py-6 rounded-2xl font-display font-bold text-xl transition-all border-2",
-                            selectedAmount === amount
-                              ? "bg-primary text-white border-primary shadow-lg scale-105"
-                              : "bg-muted/30 border-transparent hover:bg-muted/50",
-                          )}
-                        >
-                          {amount}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 font-display font-bold text-2xl text-muted-foreground">
-                        ₹
-                      </span>
-                      <Input
-                        type="number"
-                        placeholder="Custom Amount"
-                        value={customAmount}
-                        onChange={(e) => {
-                          setCustomAmount(e.target.value);
-                          setSelectedAmount(null);
-                        }}
-                        className="w-full pl-12 pr-6 py-6 bg-muted/30 border-none rounded-2xl font-display font-bold text-2xl focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 1 && (
-                  <motion.div
-                    key="step-1"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-8 grow"
-                  >
-                    <h3 className="text-2xl font-display font-bold">
-                      Your Details
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Full name"
-                        className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all"
-                      />
-                      <Input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email"
-                        className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all"
-                      />
-                    </div>
-                    <Select value={campaignId} onValueChange={setCampaignId}>
-                      <SelectTrigger className="w-full px-4 py-5 bg-muted/30 border-none rounded-xl text-sm focus:ring-2 focus:ring-accent/20 transition-all">
-                        <SelectValue placeholder="Select Campaign" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-muted rounded-xl shadow-lg">
-                        <SelectGroup>
-                          <SelectItem value="general">
-                            General Impact Fund
-                          </SelectItem>
-                          {(data?.campaigns || []).map((campaign) => (
-                            <SelectItem key={campaign.id} value={campaign.id}>
-                              {campaign.title}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <label className="flex items-center gap-3 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={isAnonymous}
-                        onChange={(e) => setIsAnonymous(e.target.checked)}
-                      />
-                      Make this donation anonymous
-                    </label>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div
-                    key="step-2"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-8 grow"
-                  >
-                    <h3 className="text-2xl font-display font-bold">
-                      Payment Method
-                    </h3>
-                    <div className="space-y-4">
-                      {paymentMethods.map((method) => (
-                        <button
-                          key={method.id}
-                          onClick={() => setSelectedMethod(method.id)}
-                          className={cn(
-                            "w-full flex items-center gap-4 p-6 rounded-2xl border-2 transition-all text-left",
-                            selectedMethod === method.id
-                              ? "bg-primary/5 border-primary shadow-sm"
-                              : "bg-white border-muted hover:bg-muted/30",
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "w-12 h-12 rounded-xl flex items-center justify-center",
-                              selectedMethod === method.id
-                                ? "bg-primary text-white"
-                                : "bg-muted text-muted-foreground",
-                            )}
-                          >
-                            <method.icon size={24} />
-                          </div>
-                          <div className="grow">
-                            <p className="font-bold">{method.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {method.description}
-                            </p>
-                          </div>
-                          {selectedMethod === method.id && (
-                            <CheckCircle2 size={26} className="text-accent" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div
-                    key="step-3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-8 grow text-center"
-                  >
-                    <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <ShieldCheck size={40} />
-                    </div>
-                    <h3 className="text-3xl font-display font-bold">
-                      {selectedMethod === "gpay_qr" ? "Scan to Pay" : "Review & Confirm"}
-                    </h3>
-                    <div className="bg-muted/30 p-8 rounded-3xl mb-5 space-y-4 max-w-md mx-auto text-left">
-                      <div className="flex justify-between">
-                        <span>Amount</span>
-                        <span className="font-bold">{finalAmountLabel}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Donor</span>
-                        <span className="font-bold">{fullName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Method</span>
-                        <span className="font-bold">
-                          {
-                            paymentMethods.find((m) => m.id === selectedMethod)
-                              ?.name
-                          }
-                        </span>
-                      </div>
-                      {selectedMethod === "gpay_qr" && (
-                        <div className="mt-8 pt-8 border-t border-muted flex flex-col items-center">
-                           <p className="text-sm text-center mb-8 text-muted-foreground max-w-sm">
-                             Scan the QR code with your Google Pay app to complete the transaction of {finalAmountLabel}.
-                           </p>
-                           
-                           <div className="bg-[#f8f9fc] border border-slate-100 shadow-sm w-full max-w-[320px] rounded-3xl p-6 flex flex-col items-center">
-                             <div className="flex items-center justify-center gap-2 mb-4">
-                               <div className="w-6 h-6 bg-[#001d6c] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
-                                 {fullName ? fullName.substring(0, 2).toUpperCase() : "IL"}
-                               </div>
-                               <span className="font-semibold text-slate-800 text-[15px]">
-                                 {fullName || "Impact Ledger"}
-                               </span>
-                             </div>
-                             
-                             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 w-full flex flex-col items-center">
-                               <img src={STATIC_QR_URL} alt="GPay QR Code" className="w-full aspect-square object-contain" />
-                               <div className="flex items-center justify-center mt-1 mb-2">
-                                 <p className="text-[10px] font-medium text-slate-500">
-                                   UPI ID: admin@impactledger
-                                 </p>
-                               </div>
-                             </div>
-                             
-                             <p className="text-[10px] text-slate-400 mt-4 text-center font-medium">
-                               Scan to pay with any UPI app
-                             </p>
-                           </div>
-                        </div>
-                      )}
-                    </div>
-                    {resultMessage && (
-                      <p className="text-sm text-red-600">
-                        {resultMessage}
-                      </p>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="flex items-center justify-between pt-12 mt-auto border-t border-muted">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 0}
-                  className={cn(
-                    "flex items-center gap-2 text-sm font-bold transition-all",
-                    currentStep === 0
-                      ? "opacity-0 pointer-events-none"
-                      : "text-muted-foreground hover:text-primary",
-                  )}
-                >
-                  <ArrowLeft size={18} /> Back
-                </button>
-                <button
-                  onClick={async () => {
-                    if (currentStep === steps.length - 1) {
-                      await submitDonation();
-                      return;
-                    }
-                    nextStep();
-                  }}
-                  disabled={submitting || !canProceedStep}
-                  className="btn-primary flex items-center gap-2 py-3 px-8 disabled:opacity-50"
-                >
-                  {currentStep === steps.length - 1
-                    ? submitting
-                      ? "Submitting..."
-                      : selectedMethod === "gpay_qr" ? "I've Paid" : "Finalize Stewardship"
-                    : "Continue"}
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="no-line-card p-8 bg-primary text-primary-foreground">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center text-white">
-                    <Heart size={24} fill="currentColor" />
-                  </div>
-                  <h4 className="font-display font-bold text-xl">Monthly Impact</h4>
-                </div>
-                <p className="text-3xl font-display font-extrabold text-blue-400">{finalAmountLabel}</p>
-              </div>
-
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f2f4f7] text-slate-900">
+      <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
+          <Link href="/" className="text-xl font-bold text-[#1b4bb3]">Ethos Management</Link>
+          <nav className="hidden items-center gap-7 text-sm text-slate-600 md:flex">
+            <Link href="/impact" className="hover:text-slate-900">Impact</Link>
+            <Link href="/campaigns" className="hover:text-slate-900">Programs</Link>
+            <Link href="/transparency" className="hover:text-slate-900">Reports</Link>
+            <Link href="/donate" className="rounded-full bg-[#0b4abf] px-5 py-2 font-semibold text-white">Donate Now</Link>
+          </nav>
         </div>
+      </header>
+
+      <main className="mx-auto max-w-7xl px-5 pb-16 pt-10">
+        <section className="mx-auto max-w-3xl text-center">
+          <h1 className="text-5xl font-extrabold tracking-tight">Support Our Mission</h1>
+        </section>
+
+        <section className="mx-auto mt-8 max-w-3xl">
+          <div className="grid grid-cols-3 items-center gap-4 text-center">
+            {[1, 2, 3].map((step) => {
+              const done = step < currentStep;
+              const active = step === currentStep;
+              return (
+                <div key={step} className="relative">
+                  <div
+                    className={cn(
+                      "mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full border text-sm font-bold",
+                      done ? "border-green-600 bg-green-600 text-white" : active ? "border-[#0b4abf] bg-[#0b4abf] text-white" : "border-slate-200 bg-slate-100 text-slate-500",
+                    )}
+                  >
+                    {done ? <Check size={16} /> : step}
+                  </div>
+                  <p className={cn("text-xs font-semibold", active ? "text-[#0b4abf]" : done ? "text-green-700" : "text-slate-500")}>{step === 1 ? "Amount" : step === 2 ? "Details" : "Payment"}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-8">
+            {currentStep === 1 && (
+              <div className="space-y-7">
+                <h2 className="text-4xl font-bold tracking-tight text-slate-800">Choose an amount</h2>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {amountOptions.map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAmount(amount);
+                        setCustomAmount("");
+                      }}
+                      className={cn(
+                        "rounded-xl border p-5 text-left transition",
+                        selectedAmount === amount && !customAmount
+                          ? "border-[#0b4abf] bg-[#eff5ff] shadow-sm"
+                          : "border-slate-200 hover:border-slate-300",
+                      )}
+                    >
+                      <p className="text-4xl font-extrabold tracking-tight">₹{amount.toLocaleString("en-IN")}</p>
+                      <p className="mt-1 text-sm text-slate-600">{amount === 500 ? "Basic Support" : amount === 1000 ? "Standard Contribution" : amount === 2000 ? "Impact Builder" : "Visionary Patron"}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Or Enter Custom Amount</p>
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder="Enter amount"
+                    value={customAmount}
+                    onChange={(event) => setCustomAmount(event.target.value)}
+                    className="h-12 rounded-lg border-slate-300 bg-slate-50"
+                  />
+                </div>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-7">
+                <h2 className="text-4xl font-bold tracking-tight text-slate-800">Your Information</h2>
+                <p className="text-sm text-slate-600">Please provide your contact details. This information ensures your contribution is properly recorded and acknowledged.</p>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <Input
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Full name"
+                    className="h-12 rounded-lg border-slate-300 bg-slate-50"
+                  />
+                  <Input
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="h-12 rounded-lg border-slate-300 bg-slate-50"
+                  />
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Email address"
+                    className="h-12 rounded-lg border-slate-300 bg-slate-50 md:col-span-2"
+                  />
+                  <select
+                    value={campaignId}
+                    onChange={(event) => setCampaignId(event.target.value)}
+                    className="h-12 rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm text-slate-700 md:col-span-2"
+                  >
+                    <option value="general">General Impact Fund</option>
+                    {(data?.campaigns || []).map((campaign) => (
+                      <option key={campaign.id} value={campaign.id}>{campaign.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <label className="flex items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(event) => setIsAnonymous(event.target.checked)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm text-slate-700">
+                    <span className="font-semibold">Make this donation anonymous</span>
+                    <span className="mt-1 block text-slate-500">Your name will not be displayed on our public donor wall or annual reports.</span>
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-7">
+                <h2 className="text-3xl font-bold tracking-tight text-slate-800">Complete Your Donation</h2>
+
+                <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod("card")}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-sm font-semibold",
+                      selectedMethod === "card" ? "bg-white text-[#0b4abf] shadow" : "text-slate-600",
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-2"><CreditCard size={14} /> Card Payment</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod("upi")}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-sm font-semibold",
+                      selectedMethod === "upi" ? "bg-white text-[#0b4abf] shadow" : "text-slate-600",
+                    )}
+                  >
+                    <span className="inline-flex items-center gap-2"><QrCode size={14} /> UPI / QR Code</span>
+                  </button>
+                </div>
+
+                {selectedMethod === "card" ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-[2fr_1fr]">
+                      <Input placeholder="1234 5678 1234 5678" className="h-12 rounded-lg border-slate-300 bg-slate-50" />
+                      <Input placeholder="MM/YY   CVV" className="h-12 rounded-lg border-slate-300 bg-slate-50" />
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <Input placeholder="Cardholder Name" className="h-12 rounded-lg border-slate-300 bg-slate-50" />
+                      <Input placeholder="Postal Code" className="h-12 rounded-lg border-slate-300 bg-slate-50" />
+                    </div>
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+                      Or pay with UPI from Razorpay checkout after clicking complete payment.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[220px_1fr]">
+                    <div className="rounded-xl bg-white p-3">
+                      <img src="/GPAY_QR.jpeg" alt="UPI QR" className="w-full rounded-lg object-cover" />
+                      <p className="mt-2 text-center text-xs font-semibold text-slate-600">Scan with any UPI app</p>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-900">Scan with any UPI App</h3>
+                      <p className="mt-2 text-sm text-slate-600">Open your preferred UPI application (GPay, PhonePe, Paytm, BHIM) and scan the QR code. You can also continue to Razorpay UPI checkout.</p>
+                      <div className="mt-4 inline-flex items-center rounded-lg bg-green-100 px-3 py-2 text-xs font-semibold text-green-800">
+                        Encrypted end-to-end UPI payment processing
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {resultMessage && <p className="mt-5 text-sm text-rose-600">{resultMessage}</p>}
+
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-green-700"><ShieldCheck size={16} /> Secure & Tax-Exempt (80G)</p>
+              <div className="flex items-center gap-3">
+                {currentStep > 1 && (
+                  <button type="button" onClick={goBack} className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                    Go Back
+                  </button>
+                )}
+                {currentStep < 3 ? (
+                  <button type="button" onClick={goNext} className="rounded-full bg-[#0b4abf] px-7 py-2.5 text-sm font-semibold text-white hover:bg-[#083b99]">
+                    {currentStep === 1 ? "Continue" : "Proceed to Payment"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={submitDonation}
+                    disabled={submitting}
+                    className="rounded-full bg-[#0b4abf] px-7 py-2.5 text-sm font-semibold text-white hover:bg-[#083b99] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {submitting ? "Opening Checkout..." : selectedMethod === "card" ? "Complete Payment" : "I've Paid"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <aside className="space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h3 className="text-xl font-bold">Donation Summary</h3>
+              <div className="mt-5 space-y-3 text-sm">
+                <div className="flex items-center justify-between"><span className="text-slate-500">Selected Amount</span><span className="font-semibold">{amountLabel}</span></div>
+                <div className="flex items-center justify-between"><span className="text-slate-500">Program</span><span className="font-semibold">{campaignId === "general" ? "Primary Support Fund" : "Campaign Contribution"}</span></div>
+                <div className="flex items-center justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{selectedMethod === "card" ? "Card Payment" : "UPI / QR Code"}</span></div>
+              </div>
+              <div className="mt-5 border-t border-slate-200 pt-4">
+                <p className="text-sm text-slate-500">Total</p>
+                <p className="text-4xl font-extrabold tracking-tight text-[#0b4abf]">{amountLabel}</p>
+              </div>
+              <div className="mt-4 rounded-lg bg-green-50 p-3 text-xs text-green-800">
+                This donation supports verified field programs and tax documentation.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700"><CheckCircle2 size={14} /> Transparency First</p>
+              <p className="mt-1 text-xs text-slate-500">95% of every rupee donated goes directly to field programs.</p>
+            </div>
+
+            <p className="inline-flex items-center gap-2 text-xs text-slate-500"><Lock size={13} /> All transactions are encrypted and secured.</p>
+          </aside>
+        </section>
       </main>
 
-      <Footer />
+      <footer className="border-t border-slate-200 bg-white py-6">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+          <p>© 2026 Ethos Management. Built for Global Impact.</p>
+          <div className="flex flex-wrap items-center gap-5">
+            <Link href="/privacy" className="hover:text-slate-700">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-700">Terms of Service</Link>
+            <Link href="/about" className="hover:text-slate-700">Contact Us</Link>
+            <Link href="/transparency" className="hover:text-slate-700">Annual Report</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
 
 export default function DonatePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#f2f4f7]" />}>
       <DonatePageContent />
     </Suspense>
   );

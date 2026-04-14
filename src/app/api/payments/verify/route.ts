@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const { data: donation, error: donationError } = await supabase
       .from("donations")
-      .select("id,tenant_id,donor_id,campaign_id,donor_email,amount,status,razorpay_order_id,razorpay_payment_id,receipt_url")
+      .select("id,tenant_id,donor_id,campaign_id,donor_email,amount,status,payment_method,razorpay_order_id,razorpay_payment_id,receipt_url")
       .eq("id", body.donationId)
       .single();
 
@@ -83,12 +83,14 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
     const receiptUrl = `${appUrl}/donate/success?donationId=${encodeURIComponent(donation.id)}`;
 
+    const resolvedPaymentMethod = donation.payment_method === "Card" ? "Card" : "UPI";
+
     const { error: updateError } = await supabase
       .from("donations")
       .update({
         status: "succeeded",
         currency: CURRENCY,
-        payment_method: "UPI",
+        payment_method: resolvedPaymentMethod,
         payment_provider: "razorpay",
         razorpay_order_id: body.razorpayOrderId,
         razorpay_payment_id: body.razorpayPaymentId,
@@ -131,7 +133,7 @@ export async function POST(request: NextRequest) {
       target_id: donation.id,
       metadata: {
         provider: "razorpay",
-        payment_method: "UPI",
+        payment_method: resolvedPaymentMethod,
         provider_payment_id: body.razorpayPaymentId,
       },
     });

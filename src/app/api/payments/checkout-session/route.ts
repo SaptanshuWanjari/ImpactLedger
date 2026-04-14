@@ -6,9 +6,12 @@ import { createRazorpayOrder, getRazorpayConfig } from "@/lib/server/razorpay";
 type CheckoutRequest = {
   fullName?: string;
   email?: string;
+  phone?: string;
   amount?: number;
   campaignId?: string | null;
   isAnonymous?: boolean;
+  isRecurring?: boolean;
+  paymentMethod?: "card" | "upi";
   provider?: "razorpay" | "gpay";
 };
 
@@ -20,13 +23,18 @@ export async function POST(request: NextRequest) {
     const amount = Number(body.amount || 0);
     const fullName = (body.fullName || "").trim();
     const email = (body.email || "").trim().toLowerCase();
+    const phone = (body.phone || "").trim();
     const provider = body.provider || "razorpay";
+    const paymentMethod = body.paymentMethod || "upi";
 
     if (!fullName || !email || amount <= 0) {
       return NextResponse.json(
         { error: "fullName, email, and a positive amount are required." },
         { status: 400 },
       );
+    }
+    if (provider === "razorpay" && paymentMethod !== "upi" && paymentMethod !== "card") {
+      return NextResponse.json({ error: "paymentMethod must be either 'upi' or 'card'." }, { status: 400 });
     }
 
     const tenantId = await getTenantId();
@@ -39,6 +47,7 @@ export async function POST(request: NextRequest) {
           tenant_id: tenantId,
           full_name: fullName,
           email,
+          phone: phone || null,
           is_anonymous: Boolean(body.isAnonymous),
         },
         { onConflict: "tenant_id,email" },
@@ -64,7 +73,8 @@ export async function POST(request: NextRequest) {
         amount,
         currency: CURRENCY,
         status: "pending",
-        payment_method: provider === "gpay" ? "GPay QR" : "UPI",
+        payment_method: provider === "gpay" ? "GPay QR" : paymentMethod === "card" ? "Card" : "UPI",
+        is_recurring: Boolean(body.isRecurring),
         source: "web",
         payment_provider: provider,
       })
