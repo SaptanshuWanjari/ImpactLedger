@@ -62,17 +62,17 @@ export default function CampaignsPage() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
+      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="space-y-4">
             <p className="text-accent font-bold uppercase tracking-widest text-xs">Global Impact Dashboard</p>
-            <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">Active Missions.</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">Active Missions.</h1>
+            <p className="text-base sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
               Explore and fund verified missions managed by Lions International stewards across the globe.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {impactStats.map((stat, index) => {
               const value =
                 stat.key === "total"

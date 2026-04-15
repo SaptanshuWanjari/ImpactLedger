@@ -36,6 +36,19 @@ export async function POST(request: NextRequest) {
     if (provider === "razorpay" && paymentMethod !== "upi" && paymentMethod !== "card") {
       return NextResponse.json({ error: "paymentMethod must be either 'upi' or 'card'." }, { status: 400 });
     }
+    if (provider === "razorpay") {
+      const hasRazorpayKeyId = Boolean(process.env.RAZORPAY_KEY_ID);
+      const hasRazorpaySecret = Boolean(process.env.RAZORPAY_KEY_SECRET);
+      if (!hasRazorpayKeyId || !hasRazorpaySecret) {
+        return NextResponse.json(
+          {
+            error:
+              "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .env.local.",
+          },
+          { status: 503 },
+        );
+      }
+    }
 
     const tenantId = await getTenantId();
     const supabase = createAdminClient() as any;
@@ -207,6 +220,12 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    const message = (error as Error).message;
+    const isConfigOrAccessIssue =
+      message.toLowerCase().includes("missing ") ||
+      message.toLowerCase().includes("permission denied") ||
+      message.toLowerCase().includes("unable to resolve tenant");
+
+    return NextResponse.json({ error: message }, { status: isConfigOrAccessIssue ? 503 : 500 });
   }
 }

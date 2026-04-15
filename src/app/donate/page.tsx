@@ -121,7 +121,7 @@ function DonatePageContent() {
           campaignId: campaignId === "general" ? null : campaignId,
           paymentMethod: selectedMethod,
           isAnonymous,
-          provider: "razorpay",
+          provider: selectedMethod === "card" ? "razorpay" : "gpay",
         }),
       });
 
@@ -235,11 +235,11 @@ function DonatePageContent() {
 
       <main className="mx-auto max-w-7xl px-5 pb-16 pt-10">
         <section className="mx-auto max-w-3xl text-center">
-          <h1 className="text-5xl font-extrabold tracking-tight">Support Our Mission</h1>
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">Support Our Mission</h1>
         </section>
 
         <section className="mx-auto mt-8 max-w-3xl">
-          <div className="grid grid-cols-3 items-center gap-4 text-center">
+          <div className="grid grid-cols-3 items-center gap-2 sm:gap-4 text-center">
             {[1, 2, 3].map((step) => {
               const done = step < currentStep;
               const active = step === currentStep;
@@ -264,7 +264,7 @@ function DonatePageContent() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 md:p-8">
             {currentStep === 1 && (
               <div className="space-y-7">
-                <h2 className="text-4xl font-bold tracking-tight text-slate-800">Choose an amount</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800">Choose an amount</h2>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {amountOptions.map((amount) => (
                     <button
@@ -281,7 +281,7 @@ function DonatePageContent() {
                           : "border-slate-200 hover:border-slate-300",
                       )}
                     >
-                      <p className="text-4xl font-extrabold tracking-tight">₹{amount.toLocaleString("en-IN")}</p>
+                      <p className="text-3xl sm:text-4xl font-extrabold tracking-tight">₹{amount.toLocaleString("en-IN")}</p>
                       <p className="mt-1 text-sm text-slate-600">{amount === 500 ? "Basic Support" : amount === 1000 ? "Standard Contribution" : amount === 2000 ? "Impact Builder" : "Visionary Patron"}</p>
                     </button>
                   ))}
@@ -303,7 +303,7 @@ function DonatePageContent() {
 
             {currentStep === 2 && (
               <div className="space-y-7">
-                <h2 className="text-4xl font-bold tracking-tight text-slate-800">Your Information</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800">Your Information</h2>
                 <p className="text-sm text-slate-600">Please provide your contact details. This information ensures your contribution is properly recorded and acknowledged.</p>
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -366,7 +366,7 @@ function DonatePageContent() {
                       selectedMethod === "card" ? "bg-white text-[#0b4abf] shadow" : "text-slate-600",
                     )}
                   >
-                    <span className="inline-flex items-center gap-2"><CreditCard size={14} /> Card Payment</span>
+                    <span className="inline-flex items-center gap-2"><CreditCard size={24} /> Card Payment</span>
                   </button>
                   <button
                     type="button"
@@ -376,7 +376,7 @@ function DonatePageContent() {
                       selectedMethod === "upi" ? "bg-white text-[#0b4abf] shadow" : "text-slate-600",
                     )}
                   >
-                    <span className="inline-flex items-center gap-2"><QrCode size={14} /> UPI / QR Code</span>
+                    <span className="inline-flex items-center gap-2"><QrCode size={24} /> UPI </span>
                   </button>
                 </div>
 
@@ -402,10 +402,6 @@ function DonatePageContent() {
                     </div>
                     <div>
                       <h3 className="text-2xl font-bold text-slate-900">Scan with any UPI App</h3>
-                      <p className="mt-2 text-sm text-slate-600">Open your preferred UPI application (GPay, PhonePe, Paytm, BHIM) and scan the QR code. You can also continue to Razorpay UPI checkout.</p>
-                      <div className="mt-4 inline-flex items-center rounded-lg bg-green-100 px-3 py-2 text-xs font-semibold text-green-800">
-                        Encrypted end-to-end UPI payment processing
-                      </div>
                     </div>
                   </div>
                 )}
@@ -415,7 +411,6 @@ function DonatePageContent() {
             {resultMessage && <p className="mt-5 text-sm text-rose-600">{resultMessage}</p>}
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
-              <p className="inline-flex items-center gap-2 text-sm font-semibold text-green-700"><ShieldCheck size={16} /> Secure & Tax-Exempt (80G)</p>
               <div className="flex items-center gap-3">
                 {currentStep > 1 && (
                   <button type="button" onClick={goBack} className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
@@ -452,17 +447,7 @@ function DonatePageContent() {
                 <p className="text-sm text-slate-500">Total</p>
                 <p className="text-4xl font-extrabold tracking-tight text-[#0b4abf]">{amountLabel}</p>
               </div>
-              <div className="mt-4 rounded-lg bg-green-50 p-3 text-xs text-green-800">
-                This donation supports verified field programs and tax documentation.
-              </div>
             </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700"><CheckCircle2 size={14} /> Transparency First</p>
-              <p className="mt-1 text-xs text-slate-500">95% of every rupee donated goes directly to field programs.</p>
-            </div>
-
-            <p className="inline-flex items-center gap-2 text-xs text-slate-500"><Lock size={13} /> All transactions are encrypted and secured.</p>
           </aside>
         </section>
       </main>

@@ -42,7 +42,7 @@ export default function CampaignCard({
           className="w-full h-full object-cover transition-transform group-hover:scale-105"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute top-4 left-4 flex gap-2">
+        <div className="absolute top-4 left-4 right-4 flex flex-wrap gap-2">
           <div className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-widest">
             {location}
           </div>

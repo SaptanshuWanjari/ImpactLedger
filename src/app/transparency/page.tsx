@@ -27,24 +27,24 @@ export default function TransparencyPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navigation />
-      <main className="flex-grow pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto space-y-20">
+      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto space-y-16 sm:space-y-20">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <p className="text-accent font-bold uppercase tracking-widest text-xs">Radical Transparency</p>
-            <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">The Public <span className="text-accent">Ledger.</span></h1>
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">The Public <span className="text-accent">Ledger.</span></h1>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
               { label: "Verified Transactions", value: String(ledgerEntries.length), icon: ShieldCheck },
               { label: "Audit Pass Rate", value: "100%", icon: CheckCircle2 },
               { label: "Real-time Sync", value: "Active", icon: Clock },
             ].map((stat, index) => (
-              <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="no-line-card p-8 text-center space-y-4">
+              <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="no-line-card p-6 sm:p-8 text-center space-y-4">
                 <div className="w-12 h-12 bg-accent/10 text-accent rounded-2xl flex items-center justify-center mx-auto"><stat.icon size={24} /></div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                  <p className="text-4xl font-display font-extrabold tracking-tight">{stat.value}</p>
+                  <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight">{stat.value}</p>
                 </div>
               </motion.div>
             ))}
@@ -56,9 +56,9 @@ export default function TransparencyPage() {
                 <h2 className="text-3xl font-display font-extrabold tracking-tight">Transaction Ledger</h2>
                 <p className="text-sm text-muted-foreground">Immutable record of stewardship allocations and usage.</p>
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
-                <input type="text" disabled placeholder="Search will be enabled with server filtering" className="pl-9 pr-4 py-2 bg-muted/30 border-none rounded-xl text-sm w-72" />
+                <input type="text" disabled placeholder="Search will be enabled with server filtering" className="w-full sm:w-72 pl-9 pr-4 py-2 bg-muted/30 border-none rounded-xl text-sm" />
               </div>
             </div>
 

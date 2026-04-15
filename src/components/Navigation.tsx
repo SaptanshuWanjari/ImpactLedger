@@ -27,6 +27,10 @@ export default function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   return (
     <nav
       className={cn(
@@ -82,6 +86,8 @@ export default function Navigation() {
         <button
           className="md:hidden p-2 text-primary"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={isOpen}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>

@@ -28,13 +28,13 @@ export default function DonorDonationsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <DonorSidebar />
-      <main className="flex-grow p-8 space-y-8">
-        <header className="flex items-center justify-between">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-3xl font-display font-extrabold tracking-tight text-primary">Donation History</h1>
             <p className="text-sm text-muted-foreground">Track your stewardship and download receipts.</p>
           </div>
-          <Link href="/donate" className="btn-primary flex items-center gap-2 py-2 px-4 text-sm">
+          <Link href="/donate" className="btn-primary w-full sm:w-auto justify-center flex items-center gap-2 py-2 px-4 text-sm">
             <Plus size={18} /> New Donation
           </Link>
         </header>

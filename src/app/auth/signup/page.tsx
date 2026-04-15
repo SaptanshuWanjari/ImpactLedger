@@ -9,7 +9,7 @@ export default function SignupPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navigation />
-      <main className="flex-grow pt-32 pb-20 px-6">
+      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <section className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest">
@@ -17,7 +17,7 @@ export default function SignupPage() {
               Join the Platform
             </div>
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
                 Build Impact with <br /> Verified Transparency.
               </h1>
               <p className="text-lg text-muted-foreground max-w-xl">

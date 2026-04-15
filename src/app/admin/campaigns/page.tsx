@@ -24,7 +24,7 @@ export default function AdminCampaignsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Campaign Management</h1>
           <p className="text-sm text-muted-foreground">Create, monitor, and manage global stewardship missions.</p>

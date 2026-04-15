@@ -6,6 +6,12 @@ export async function GET() {
     const data = await getCampaigns();
     return NextResponse.json({ campaigns: data });
   } catch (error) {
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    const message = (error as Error).message;
+    const isConfigOrAccessIssue =
+      message.toLowerCase().includes("unable to resolve tenant") ||
+      message.toLowerCase().includes("permission denied") ||
+      message.toLowerCase().includes("missing");
+
+    return NextResponse.json({ error: message }, { status: isConfigOrAccessIssue ? 503 : 500 });
   }
 }

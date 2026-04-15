@@ -32,9 +32,9 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-muted pt-20 pb-10 px-6">
+    <footer className="bg-white border-t border-muted pt-14 sm:pt-20 pb-10 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between  gap-12 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 mb-12 sm:mb-16">
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
@@ -77,11 +77,11 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-muted pt-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-muted-foreground text-xs">
+        <div className="border-t border-muted pt-8 sm:pt-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+          <p className="text-muted-foreground text-xs text-left">
             © {new Date().getFullYear()} Impact Ledger. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
             <div className="flex items-center gap-2 text-muted-foreground text-xs">
               <Mail size={14} />
               <span>impactledger@lions.org</span>

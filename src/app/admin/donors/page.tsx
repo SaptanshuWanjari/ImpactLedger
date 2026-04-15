@@ -75,7 +75,7 @@ export default function AdminDonorsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header className="space-y-2">
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Donor Management</h1>
           <p className="text-sm text-muted-foreground">Track donor engagement, giving frequency, and recent contributions.</p>
@@ -181,12 +181,12 @@ export default function AdminDonorsPage() {
           <h2 className="font-display font-bold text-xl mb-4">Recent Donation Activity</h2>
           <div className="space-y-3">
             {(data?.recentActivity || []).map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between rounded-xl bg-muted/20 px-4 py-3">
+              <div key={entry.id} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-muted/20 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">{entry.donorEmail}</p>
                   <p className="text-xs text-muted-foreground">{entry.campaign} • {entry.status}</p>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="font-display font-extrabold">{entry.amount}</p>
                   <p className="text-xs text-muted-foreground">{entry.date}</p>
                 </div>

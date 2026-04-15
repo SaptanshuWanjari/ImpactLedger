@@ -47,22 +47,22 @@ export default function ImpactPage() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
-        <div className="max-w-7xl mx-auto space-y-20">
+      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto space-y-16 sm:space-y-20">
           {/* Header */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <p className="text-accent font-bold uppercase tracking-widest text-xs">Radical Transparency</p>
-            <h1 className="text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">
               Our Global <br />
               <span className="text-accent">Impact.</span>
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-xl text-muted-foreground leading-relaxed">
               Impact Ledger provides a real-time, verified view of how every rupee is allocated and the direct impact it creates across the globe.
             </p>
           </div>
 
           {/* KPI Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {[
               { label: "Total Funds Allocated", value: "₹4.2Cr", icon: TrendingUp },
               { label: "Lives Impacted", value: "1.2M", icon: Heart },
@@ -75,14 +75,14 @@ export default function ImpactPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="no-line-card p-8 text-center space-y-4"
+                className="no-line-card p-6 sm:p-8 text-center space-y-4"
               >
                 <div className="w-12 h-12 bg-accent/10 text-accent rounded-2xl flex items-center justify-center mx-auto">
                   <stat.icon size={24} />
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                  <p className="text-4xl font-display font-extrabold tracking-tight">{stat.value}</p>
+                  <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight">{stat.value}</p>
                 </div>
               </motion.div>
             ))}
@@ -90,9 +90,9 @@ export default function ImpactPage() {
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="no-line-card p-8 space-y-8">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-display font-bold">Stewardship Growth</h3>
+            <div className="no-line-card p-6 sm:p-8 space-y-8">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xl sm:text-2xl font-display font-bold">Stewardship Growth</h3>
                 <TrendingUp className="text-accent" />
               </div>
               <div className="h-[300px] w-full">
@@ -111,9 +111,9 @@ export default function ImpactPage() {
               </p>
             </div>
 
-            <div className="no-line-card p-8 space-y-8">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-display font-bold">Regional Allocation</h3>
+            <div className="no-line-card p-6 sm:p-8 space-y-8">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-xl sm:text-2xl font-display font-bold">Regional Allocation</h3>
                 <Globe className="text-accent" />
               </div>
               <div className="h-[300px] w-full">
@@ -127,7 +127,7 @@ export default function ImpactPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {regionalImpact.map((item) => (
                   <div key={item.region} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl">
                     <span className="text-xs font-bold uppercase tracking-widest">{item.region}</span>
@@ -139,16 +139,16 @@ export default function ImpactPage() {
           </div>
 
           {/* Transparency Commitment */}
-          <section className="py-24 px-8 bg-primary text-primary-foreground rounded-[3rem] overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
+          <section className="py-16 sm:py-24 px-6 sm:px-8 bg-primary text-primary-foreground rounded-3xl sm:rounded-[3rem] overflow-hidden relative">
+            <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full opacity-10 pointer-events-none">
               <ShieldCheck size={500} className="translate-x-1/4 translate-y-1/4" />
             </div>
             <div className="max-w-3xl space-y-8 relative z-10">
-              <h2 className="text-5xl font-display font-extrabold tracking-tighter leading-none">
+              <h2 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tighter leading-none">
                 The Impact Ledger <br />
                 Transparency Promise.
               </h2>
-              <p className="text-xl text-primary-foreground/70 leading-relaxed">
+              <p className="text-base sm:text-xl text-primary-foreground/70 leading-relaxed">
                 We believe that every donor is a steward of change. Our platform is built on the principle that radical transparency is the only way to build lasting trust in global humanitarian work.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -172,7 +172,7 @@ export default function ImpactPage() {
 
           {/* CTA */}
           <div className="text-center space-y-8 py-20">
-            <h2 className="text-5xl font-display font-extrabold tracking-tighter">
+            <h2 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tighter">
               Ready to fund the <br />
               <span className="text-accent">next mission?</span>
             </h2>

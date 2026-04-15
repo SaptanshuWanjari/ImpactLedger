@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Global Stewardship</h1>
           <p className="text-sm text-muted-foreground">Real-time overview of NGO operations.</p>
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
                   <div key={activity.id} className="flex items-start gap-4">
                     <div className="w-2 h-2 rounded-full mt-2 bg-accent" />
                     <div className="flex-grow">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-bold">{activity.user}</p>
                         <span className="text-[10px] text-muted-foreground">{activity.date}</span>
                       </div>

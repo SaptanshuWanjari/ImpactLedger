@@ -54,7 +54,7 @@ export default function VolunteerHub() {
   return (
     <div className="flex min-h-screen bg-background">
       <VolunteerSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         {!isOnline && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-3 text-red-600">

@@ -43,7 +43,7 @@ export default function LandingPage() {
       <Navigation />
 
       <main className="flex-grow">
-        <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+        <section className="relative pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-accent/5 to-transparent -z-10" />
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -56,11 +56,11 @@ export default function LandingPage() {
                 <ShieldCheck size={16} />
                 Radical Transparency in Stewardship
               </div>
-              <h1 className="text-6xl md:text-7xl font-display font-extrabold tracking-tighter leading-[0.9]">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-[0.9]">
                 The Digital <br />
                 <span className="text-accent">Steward.</span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
+              <p className="text-base sm:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 Impact Ledger empowers Lions International to manage global
                 impact with modern efficiency, absolute transparency, and
                 human-centric design.
@@ -98,9 +98,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-20 px-6 bg-white border-y border-muted">
+        <section className="py-16 sm:py-20 px-4 sm:px-6 bg-white border-y border-muted">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
               {(isLoading ? Array.from({ length: 4 }) : stats).map(
                 (_, index) => (
                   <motion.div
@@ -117,7 +117,7 @@ export default function LandingPage() {
                         {stats[index]?.label || "Loading"}
                       </span>
                     </div>
-                    <p className="text-4xl font-display font-extrabold tracking-tight">
+                    <p className="text-3xl sm:text-4xl font-display font-extrabold tracking-tight">
                       {stats[index]?.value || "..."}
                     </p>
                   </motion.div>
@@ -127,14 +127,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-24 px-6">
+        <section className="py-16 sm:py-24 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
               <div className="space-y-4">
                 <p className="text-accent font-bold uppercase tracking-widest text-xs">
                   Active Stewardship
                 </p>
-                <h2 className="text-5xl font-display font-extrabold tracking-tighter">
+                <h2 className="text-3xl sm:text-5xl font-display font-extrabold tracking-tighter">
                   Current Missions.
                 </h2>
               </div>
@@ -215,14 +215,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="py-24 px-6 bg-primary text-primary-foreground overflow-hidden">
+        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-primary text-primary-foreground overflow-hidden">
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-8">
-              <h2 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
                 Every Rupee <br />
                 Accounted For.
               </h2>
-              <p className="text-lg text-primary-foreground/70 leading-relaxed">
+              <p className="text-base sm:text-lg text-primary-foreground/70 leading-relaxed">
                 We believe trust is earned through visibility. Impact Ledger
                 provides a real-time breakdown of fund allocation, operational
                 costs, and direct impact metrics.
@@ -244,7 +244,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="glass bg-white/10 border-white/10 p-8 rounded-3xl relative z-10">
+            <div className="glass bg-white/10 border-white/10 p-6 sm:p-8 rounded-3xl relative z-10">
               <div className="flex items-center justify-between mb-8">
                 <h4 className="font-display font-bold text-xl">
                   Fund Allocation
@@ -279,20 +279,20 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="no-line-card mx-25 mt-25 mb-20 p-16 bg-accent text-white text-center space-y-8 relative overflow-hidden">
+        <section className="no-line-card max-w-7xl mx-4 sm:mx-6 lg:mx-auto mt-12 sm:mt-16 mb-16 sm:mb-20 p-8 sm:p-12 lg:p-16 bg-accent text-white text-center space-y-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
-            <div className="grid grid-cols-10 gap-4">
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-4">
               {Array.from({ length: 100 }).map((_, i) => (
                 <div key={i} className="w-2 h-2 bg-white rounded-full" />
               ))}
             </div>
           </div>
           <div className="max-w-2xl mx-auto space-y-8 relative z-10">
-            <h2 className="text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">
+            <h2 className="text-3xl sm:text-5xl md:text-7xl font-display font-extrabold tracking-tighter leading-none">
               Ready to <br />
               <span className="text-white/60">Steward?</span>
             </h2>
-            <p className="text-xl text-white/80 leading-relaxed">
+            <p className="text-base sm:text-xl text-white/80 leading-relaxed">
               Join thousands of donors and volunteers who are already using
               Impact Ledger to build a more transparent world.
             </p>

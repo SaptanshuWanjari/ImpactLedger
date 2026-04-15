@@ -40,7 +40,7 @@ export default function OperationsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Operational Workflows</h1>
           <p className="text-sm text-muted-foreground">Manage field expenses and verify operational updates.</p>
@@ -68,13 +68,13 @@ export default function OperationsPage() {
               <p className="text-sm text-muted-foreground">Loading operations...</p>
             ) : (
               (data?.operations || []).map((op) => (
-                <div key={op.id} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl">
+                <div key={op.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-muted/20 rounded-2xl">
                   <div>
                     <p className="text-xs uppercase tracking-widest text-muted-foreground">{op.type} • {op.hub}</p>
                     <h4 className="font-bold">{op.title}</h4>
                     <p className="text-xs text-muted-foreground">{op.date}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="sm:text-right">
                     <p className="font-bold">{op.amount}</p>
                     <span className={cn("inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] uppercase", op.status.includes("Approved") ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600")}>
                       {op.status.includes("Approved") ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />} {op.status}

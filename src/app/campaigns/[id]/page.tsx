@@ -31,7 +31,7 @@ export default function CampaignDetailPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="pt-32 px-6">
+        <main className="pt-28 sm:pt-32 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto h-96 no-line-card animate-pulse bg-muted/40" />
         </main>
       </div>
@@ -42,7 +42,7 @@ export default function CampaignDetailPage() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-32 pb-20 px-6">
+      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-12">
           <Link href="/campaigns" className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft size={16} /> Back to Missions
@@ -50,11 +50,11 @@ export default function CampaignDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <div className="px-3 py-1 bg-accent/10 text-accent rounded-full text-[10px] font-bold uppercase tracking-widest">{campaign.category}</div>
                 <div className="px-3 py-1 bg-red-500 text-white rounded-full text-[10px] font-bold uppercase tracking-widest">{campaign.urgency} Urgency</div>
               </div>
-              <h1 className="text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">{campaign.title}</h1>
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">{campaign.title}</h1>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Globe size={18} />
                 <span className="font-medium">{campaign.location}</span>
@@ -65,7 +65,7 @@ export default function CampaignDetailPage() {
                 <div className="flex h-4 bg-muted rounded-full overflow-hidden">
                   <div className={cn("h-full bg-accent")} style={{ width: `${campaign.progress}%` }} />
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between gap-2">
                   <span className="text-sm font-bold">{campaign.raised} raised</span>
                   <span className="text-sm text-muted-foreground">Goal {campaign.goal}</span>
                 </div>
@@ -95,8 +95,8 @@ export default function CampaignDetailPage() {
           </div>
 
           <section className="space-y-12">
-            <div className="flex items-center justify-between">
-              <h2 className="text-4xl font-display font-extrabold tracking-tighter">Mission Updates.</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-3xl sm:text-4xl font-display font-extrabold tracking-tighter">Mission Updates.</h2>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock size={18} />
                 <span className="text-sm font-medium">Live from Supabase</span>

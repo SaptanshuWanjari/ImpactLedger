@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, formatShortDate, titleCase, urgencyLabel } from "@/lib/api/format";
 import { ADMIN_ALLOWED_ROLES, requireAuthContext } from "@/lib/server/auth";
 import { isRbacEnabled } from "@/lib/config/rbac";
 
 const DEFAULT_TENANT_SLUG = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || "lions-global";
+const DEFAULT_TENANT_ID =
+  process.env.DEFAULT_TENANT_ID || process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || null;
 const DEFAULT_DONOR_EMAIL = process.env.NEXT_PUBLIC_DEMO_DONOR_EMAIL || "john@example.com";
 const DEFAULT_VOLUNTEER_EMAIL = process.env.NEXT_PUBLIC_DEMO_VOLUNTEER_EMAIL || "sarah@example.com";
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
@@ -37,18 +40,69 @@ async function runWithFetchRetry<T>(operation: () => Promise<T>, attempts = 3, d
 }
 
 export async function getTenantId() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("id")
-    .eq("slug", DEFAULT_TENANT_SLUG)
-    .single();
+  let supabase: any = null;
 
-  if (error) {
-    throw new Error(`Unable to resolve tenant: ${error.message}`);
+  try {
+    supabase = createAdminClient();
+  } catch {
+    supabase = await createClient();
   }
 
-  return data.id as string;
+  const configuredSlug = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG?.trim();
+  const targetSlug = configuredSlug || DEFAULT_TENANT_SLUG;
+  const configuredTenantId = DEFAULT_TENANT_ID?.trim();
+
+  if (configuredTenantId) {
+    return configuredTenantId;
+  }
+
+  const { data: matchingTenant, error: matchingError } = await supabase
+    .from("tenants")
+    .select("id,slug")
+    .eq("slug", targetSlug)
+    .maybeSingle();
+
+  if (matchingError) {
+    throw new Error(`Unable to resolve tenant by slug '${targetSlug}': ${matchingError.message}`);
+  }
+
+  if (matchingTenant?.id) {
+    return matchingTenant.id as string;
+  }
+
+  // Fallback: infer tenant_id from tenant-scoped tables when tenants table is not accessible.
+  const fallbackTables = ["campaign_funding_summary", "campaigns", "donations", "donors"];
+  for (const table of fallbackTables) {
+    const { data: row, error: rowError } = await supabase
+      .from(table)
+      .select("tenant_id")
+      .not("tenant_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+
+    if (!rowError && row?.tenant_id) {
+      return row.tenant_id as string;
+    }
+  }
+
+  const { data: fallbackTenant, error: fallbackError } = await supabase
+    .from("tenants")
+    .select("id,slug")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (fallbackError) {
+    throw new Error(`Unable to resolve tenant fallback: ${fallbackError.message}`);
+  }
+
+  if (!fallbackTenant?.id) {
+    throw new Error(
+      "No tenant found. Configure DEFAULT_TENANT_ID (or NEXT_PUBLIC_DEFAULT_TENANT_ID) in .env.local, or seed/access tenants data.",
+    );
+  }
+
+  return fallbackTenant.id as string;
 }
 
 function mapCampaign(campaign: any) {

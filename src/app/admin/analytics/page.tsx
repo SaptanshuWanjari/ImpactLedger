@@ -72,13 +72,14 @@ export default function AdminAnalyticsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-3xl font-display font-extrabold tracking-tight">Analytics</h1>
             <p className="text-sm text-muted-foreground">Trend visibility for donation flow, spending, and campaign efficiency.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-muted p-1">
+          <div className="w-full sm:w-auto overflow-x-auto">
+            <div className="flex min-w-max items-center gap-2 rounded-xl border border-muted p-1">
             {ranges.map((value) => (
               <button
                 key={value}
@@ -91,6 +92,7 @@ export default function AdminAnalyticsPage() {
                 {value}
               </button>
             ))}
+            </div>
           </div>
         </header>
 

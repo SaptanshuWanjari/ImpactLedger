@@ -33,7 +33,7 @@ export default function VolunteerVerificationPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <VolunteerSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header>
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Verification</h1>
           <p className="text-sm text-muted-foreground">Track report review states and assignment coverage for {data?.volunteerName || "your"} workflow.</p>
@@ -66,7 +66,7 @@ export default function VolunteerVerificationPage() {
           <h2 className="font-display font-bold text-xl">Verification Queue</h2>
           <div className="space-y-3">
             {(data?.verificationQueue || []).map((item) => (
-              <div key={item.id} className="rounded-xl border border-muted px-4 py-3 bg-white flex items-center justify-between gap-3">
+              <div key={item.id} className="rounded-xl border border-muted px-4 py-3 bg-white flex flex-col items-start sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold">Report #{item.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-xs text-muted-foreground">Submitted {item.submittedAt} • Impact {item.impactMetric}</p>

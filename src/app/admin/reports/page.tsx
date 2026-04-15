@@ -51,13 +51,14 @@ export default function AdminReportsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      <main className="flex-grow p-8 space-y-8">
+      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-3xl font-display font-extrabold tracking-tight">Reports</h1>
             <p className="text-sm text-muted-foreground">Operational and fundraising snapshots for internal stewardship review.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-muted p-1">
+          <div className="w-full sm:w-auto overflow-x-auto">
+            <div className="flex min-w-max items-center gap-2 rounded-xl border border-muted p-1">
             {ranges.map((value) => (
               <button
                 key={value}
@@ -70,6 +71,7 @@ export default function AdminReportsPage() {
                 {value}
               </button>
             ))}
+            </div>
           </div>
         </header>
 
@@ -168,7 +170,7 @@ export default function AdminReportsPage() {
           <h2 className="font-display font-bold text-xl mb-4">Recent Audit Activity</h2>
           <div className="space-y-3">
             {(data?.recentAudit || []).map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between rounded-xl bg-muted/20 px-4 py-3">
+              <div key={entry.id} className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between rounded-xl bg-muted/20 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">{entry.action}</p>
                   <p className="text-xs text-muted-foreground">{entry.actor} • {entry.target}</p>
