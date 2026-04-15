@@ -75,6 +75,12 @@ export default function AdminReportsPage() {
           </div>
         </header>
 
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load reports: {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <MetricCard label="Donations Raised" value={data?.summary.donationsRaised || "₹0"} />
           <MetricCard label="Donation Count" value={String(data?.summary.donationCount || 0)} />
@@ -180,7 +186,6 @@ export default function AdminReportsPage() {
             ))}
             {!isLoading && (data?.recentAudit || []).length === 0 && <p className="text-sm text-muted-foreground">No audit rows found.</p>}
           </div>
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         </div>
       </main>
     </div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, formatShortDate, titleCase, urgencyLabel } from "@/lib/api/format";
-import { ADMIN_ALLOWED_ROLES, requireAuthContext } from "@/lib/server/auth";
+import { ADMIN_ALLOWED_ROLES, AuthHttpError, getAuthContext, requireAuthContext } from "@/lib/server/auth";
 import { isRbacEnabled } from "@/lib/config/rbac";
 
 const DEFAULT_TENANT_SLUG = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || "lions-global";
@@ -123,32 +123,84 @@ function mapCampaign(campaign: any) {
   };
 }
 
-export async function getCampaigns() {
-  const supabase = await createClient();
-  const tenantId = await getTenantId();
+function isMissingRelationError(message: string) {
+  const value = message.toLowerCase();
+  return (
+    value.includes("could not find the table") ||
+    value.includes("does not exist") ||
+    value.includes("relation") && value.includes("does not exist")
+  );
+}
 
-  const { data, error } = await supabase
+async function getCampaignFundingRows(supabase: any, tenantId: string) {
+  const summaryResponse = await supabase
     .from("campaign_funding_summary")
     .select("*")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (!summaryResponse.error) {
+    return summaryResponse.data || [];
+  }
 
-  return (data || []).map(mapCampaign);
+  if (!isMissingRelationError(summaryResponse.error.message)) {
+    throw new Error(summaryResponse.error.message);
+  }
+
+  const campaignsResponse = await supabase
+    .from("campaigns")
+    .select("id,title,description,category,location,image_url,goal_amount,currency,status,urgency,created_at")
+    .eq("tenant_id", tenantId)
+    .order("created_at", { ascending: false });
+
+  if (campaignsResponse.error) {
+    throw new Error(campaignsResponse.error.message);
+  }
+
+  const donationsResponse = await supabase
+    .from("donations")
+    .select("campaign_id,amount,status")
+    .eq("tenant_id", tenantId)
+    .in("status", ["succeeded", "refunded", "disputed"]);
+
+  if (donationsResponse.error) {
+    throw new Error(donationsResponse.error.message);
+  }
+
+  const raisedByCampaignId = new Map<string, number>();
+  for (const donation of donationsResponse.data || []) {
+    const campaignId = donation.campaign_id as string | null;
+    if (!campaignId) continue;
+    const current = raisedByCampaignId.get(campaignId) || 0;
+    raisedByCampaignId.set(campaignId, current + Number(donation.amount || 0));
+  }
+
+  return (campaignsResponse.data || []).map((campaign: any) => {
+    const raisedAmount = raisedByCampaignId.get(campaign.id) || 0;
+    const goalAmount = Number(campaign.goal_amount || 0);
+    const progressPercent = goalAmount > 0 ? Math.min(100, Math.round((raisedAmount / goalAmount) * 100)) : 0;
+
+    return {
+      ...campaign,
+      raised_amount: raisedAmount,
+      progress_percent: progressPercent,
+    };
+  });
+}
+
+export async function getCampaigns() {
+  const supabase = await createClient();
+  const tenantId = await getTenantId();
+  const rows = await getCampaignFundingRows(supabase, tenantId);
+  return rows.map(mapCampaign);
 }
 
 export async function getCampaignById(campaignId: string) {
   const supabase = await createClient();
   const tenantId = await getTenantId();
 
-  const [campaignResponse, updatesResponse] = await Promise.all([
-    supabase
-      .from("campaign_funding_summary")
-      .select("*")
-      .eq("tenant_id", tenantId)
-      .eq("id", campaignId)
-      .single(),
+  const [campaignRows, updatesResponse] = await Promise.all([
+    getCampaignFundingRows(supabase, tenantId),
     supabase
       .from("campaign_updates")
       .select("id,title,content,image_url,published_at")
@@ -158,11 +210,12 @@ export async function getCampaignById(campaignId: string) {
       .limit(5),
   ]);
 
-  if (campaignResponse.error) throw new Error(campaignResponse.error.message);
+  const campaign = campaignRows.find((item: any) => item.id === campaignId);
+  if (!campaign) throw new Error("Campaign not found.");
   if (updatesResponse.error) throw new Error(updatesResponse.error.message);
 
   return {
-    ...mapCampaign(campaignResponse.data),
+    ...mapCampaign(campaign),
     updates: (updatesResponse.data || []).map((update) => ({
       id: update.id,
       title: update.title,
@@ -205,22 +258,45 @@ export async function getTransparencyLedger(limit = 20) {
   const supabase = await createClient();
   const tenantId = await getTenantId();
 
-  const { data, error } = await supabase
+  const viewResponse = await supabase
     .from("transparency_ledger")
     .select("id,occurred_at,campaign,location,category,amount,event_type")
     .eq("tenant_id", tenantId)
     .order("occurred_at", { ascending: false })
     .limit(limit);
 
+  if (!viewResponse.error) {
+    return (viewResponse.data || []).map((entry: any) => ({
+      id: String(entry.id).slice(0, 8).toUpperCase(),
+      date: formatShortDate(entry.occurred_at),
+      campaign: entry.campaign,
+      hub: entry.location || "Global",
+      amount: formatCurrency(entry.amount),
+      type: titleCase(entry.category),
+      status: "Verified",
+    }));
+  }
+
+  if (!isMissingRelationError(viewResponse.error.message)) {
+    throw new Error(viewResponse.error.message);
+  }
+
+  const { data, error } = await supabase
+    .from("donation_ledger")
+    .select("id,occurred_at,amount,event_type,campaigns(title,location,category)")
+    .eq("tenant_id", tenantId)
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
+
   if (error) throw new Error(error.message);
 
-  return (data || []).map((entry) => ({
+  return (data || []).map((entry: any) => ({
     id: String(entry.id).slice(0, 8).toUpperCase(),
     date: formatShortDate(entry.occurred_at),
-    campaign: entry.campaign,
-    hub: entry.location || "Global",
+    campaign: entry.campaigns?.title || "General Fund",
+    hub: entry.campaigns?.location || "Global",
     amount: formatCurrency(entry.amount),
-    type: titleCase(entry.category),
+    type: titleCase(entry.campaigns?.category || entry.event_type || "Donation"),
     status: "Verified",
   }));
 }
@@ -317,15 +393,8 @@ export async function getRecentTenantDonations(limit = 10) {
 
 async function getCampaignFundingSummaryForTenant(tenantId: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("campaign_funding_summary")
-    .select("*")
-    .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  return (data || []).map(mapCampaign);
+  const rows = await getCampaignFundingRows(supabase, tenantId);
+  return rows.map(mapCampaign);
 }
 
 export async function getAdminCampaigns() {
@@ -335,11 +404,15 @@ export async function getAdminCampaigns() {
 
 export async function getAdminDashboard() {
   const { tenantId } = await requireAuthContext(ADMIN_ALLOWED_ROLES);
-  const [campaigns, donations, operations] = await Promise.all([
-    getCampaignFundingSummaryForTenant(tenantId),
-    getRecentTenantDonations(12),
-    getOperationsForTenant(tenantId),
+  const [campaignsResult, donationsResult, operationsResult] = await Promise.allSettled([
+    runWithFetchRetry(() => getCampaignFundingSummaryForTenant(tenantId)),
+    runWithFetchRetry(() => getRecentTenantDonations(12)),
+    runWithFetchRetry(() => getOperationsForTenant(tenantId)),
   ]);
+
+  const campaigns = campaignsResult.status === "fulfilled" ? campaignsResult.value : [];
+  const donations = donationsResult.status === "fulfilled" ? donationsResult.value : [];
+  const operations = operationsResult.status === "fulfilled" ? operationsResult.value : [];
 
   const totalRaised = campaigns.reduce((sum, campaign) => sum + campaign.raisedAmount, 0);
 
@@ -1205,7 +1278,15 @@ export async function getRecentDonationsForCurrentUser(limit = 10) {
   }
 
   const supabase = await createClient();
-  const { tenantId, user, email } = await requireAuthContext(["donor", "org_admin"]);
+  const context = await getAuthContext();
+  if (!context) {
+    throw new AuthHttpError(401, "Authentication required.");
+  }
+  if (context.role && context.role !== "donor" && context.role !== "org_admin") {
+    throw new AuthHttpError(403, "You do not have access to this resource.");
+  }
+
+  const { tenantId, user, email } = context;
 
   const { data: donorRow } = await supabase
     .from("donors")
@@ -1253,7 +1334,14 @@ export async function getDonorDashboardForCurrentUser() {
   }
 
   const supabase = await createClient();
-  const { tenantId, user, email } = await requireAuthContext(["donor", "org_admin"]);
+  const context = await getAuthContext();
+  if (!context) {
+    throw new AuthHttpError(401, "Authentication required.");
+  }
+  if (context.role && context.role !== "donor" && context.role !== "org_admin") {
+    throw new AuthHttpError(403, "You do not have access to this resource.");
+  }
+  const { tenantId, user, email } = context;
 
   const [donations, ledger, donorResult] = await Promise.all([
     getRecentDonationsForCurrentUser(20),

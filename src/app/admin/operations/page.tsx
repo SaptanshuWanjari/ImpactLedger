@@ -19,11 +19,12 @@ type Operation = {
 type Response = { operations: Operation[] };
 
 export default function OperationsPage() {
-  const { data, isLoading } = useApiData<Response>("/api/admin/operations");
+  const { data, isLoading, error } = useApiData<Response>("/api/admin/operations");
   const [category, setCategory] = useState("Infrastructure");
   const [amount, setAmount] = useState("0");
   const [notes, setNotes] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const operations = data?.operations || [];
 
   async function submitExpense() {
     try {
@@ -46,6 +47,12 @@ export default function OperationsPage() {
           <p className="text-sm text-muted-foreground">Manage field expenses and verify operational updates.</p>
         </header>
 
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load operations: {error}
+          </div>
+        )}
+
         <div className="no-line-card p-6">
           <h3 className="font-display font-bold text-xl mb-6">Submit Expense</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -66,8 +73,10 @@ export default function OperationsPage() {
           <div className="space-y-4">
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Loading operations...</p>
+            ) : operations.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No operations available yet.</p>
             ) : (
-              (data?.operations || []).map((op) => (
+              operations.map((op) => (
                 <div key={op.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-muted/20 rounded-2xl">
                   <div>
                     <p className="text-xs uppercase tracking-widest text-muted-foreground">{op.type} • {op.hub}</p>

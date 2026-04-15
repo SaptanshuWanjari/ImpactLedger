@@ -81,6 +81,12 @@ export default function AdminDonorsPage() {
           <p className="text-sm text-muted-foreground">Track donor engagement, giving frequency, and recent contributions.</p>
         </header>
 
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load donor analytics: {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <MetricCard label="Total Donors" value={String(data?.kpis.totalDonors || 0)} />
           <MetricCard label="Active Donors" value={String(data?.kpis.activeDonors || 0)} />
@@ -196,7 +202,6 @@ export default function AdminDonorsPage() {
               <p className="text-sm text-muted-foreground">No donation activity available.</p>
             )}
           </div>
-          {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         </div>
       </main>
     </div>

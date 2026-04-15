@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createDonationReceiptPdf } from "@/lib/server/pdf";
+import nodemailer from "nodemailer";
 
 export type DonationInvoiceDispatch = {
   status: "sent" | "already_sent" | "skipped" | "failed";
@@ -25,6 +26,11 @@ function resolveAppUrl(origin?: string) {
   return process.env.NEXT_PUBLIC_APP_URL || origin || "http://localhost:3000";
 }
 
+function parseBoolean(value?: string | null) {
+  if (!value) return false;
+  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+}
+
 function formatAmount(amount: number) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -32,7 +38,7 @@ function formatAmount(amount: number) {
   }).format(Number(amount || 0));
 }
 
-async function sendViaResend(input: {
+async function sendViaNodemailer(input: {
   to: string;
   donorName: string;
   amountInInr: number;
@@ -44,15 +50,25 @@ async function sendViaResend(input: {
   orgName: string;
   paymentMethod?: string | null;
   paymentProvider?: string | null;
+  pdf: Buffer;
 }) {
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const from = process.env.DONATION_INVOICE_FROM_EMAIL || "Impact Ledger <donations@impactledger.app>";
+  const smtpHost = (process.env.SMTP_HOST || "").trim();
+  const smtpPort = Number(process.env.SMTP_PORT || "587");
+  const smtpUser = (process.env.SMTP_USER || "").trim();
+  const smtpPass = process.env.SMTP_PASS || "";
+  const smtpSecure = parseBoolean(process.env.SMTP_SECURE);
+  const testMode = parseBoolean(process.env.EMAIL_TEST_MODE);
+  const testToEmail = (process.env.EMAIL_TEST_TO || "").trim();
+  const from =
+    process.env.DONATION_INVOICE_FROM_EMAIL ||
+    "Impact Ledger <no-reply@localhost>";
+  const toAddress = testMode && testToEmail ? testToEmail : input.to;
 
-  if (!resendApiKey) {
-    return { sent: false as const, skipped: true as const, error: "Missing RESEND_API_KEY" };
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+    return { sent: false as const, skipped: true as const, error: "Missing SMTP configuration." };
   }
 
-  const subject = `Donation Receipt: ${input.amountLabel}`;
+  const subject = `${testMode ? "[TEST] " : ""}Donation Receipt: ${input.amountLabel}`;
   const text = [
     `Hello ${input.donorName},`,
     "",
@@ -72,47 +88,78 @@ async function sendViaResend(input: {
     </div>
   `;
 
-  const pdf = createDonationReceiptPdf({
-    donationId: input.donationId,
-    donorName: input.donorName,
-    donorEmail: input.to,
-    campaignTitle: input.campaignTitle,
-    amountInInr: input.amountInInr,
-    donatedAtIso: input.donatedAt,
-    orgName: input.orgName,
-    receiptUrl: input.receiptUrl,
-    paymentMethod: input.paymentMethod,
-    paymentProvider: input.paymentProvider,
-  });
-  const encodedPdf = pdf.toString("base64");
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+    await transporter.sendMail({
       from,
-      to: [input.to],
+      to: toAddress,
       subject,
       text,
       html,
       attachments: [
         {
           filename: `donation-receipt-${input.donationId}.pdf`,
-          content: encodedPdf,
+          content: input.pdf,
+          contentType: "application/pdf",
         },
       ],
-    }),
-  });
-
-  if (!response.ok) {
-    const payload = await response.text();
-    return { sent: false as const, skipped: false as const, error: payload || `Resend failed: ${response.status}` };
+    });
+  } catch (error) {
+    return { sent: false as const, skipped: false as const, error: (error as Error).message };
   }
 
   return { sent: true as const, skipped: false as const, error: null };
+}
+
+async function storePdfInSupabase(input: {
+  tenantId: string;
+  donationId: string;
+  pdf: Buffer;
+}) {
+  const supabase = createAdminClient() as any;
+  const bucket = process.env.SUPABASE_RECEIPTS_BUCKET || "donation-receipts";
+  const path = `${input.tenantId}/${input.donationId}.pdf`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(path, input.pdf, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    return { ok: false as const, error: uploadError.message, url: null as string | null };
+  }
+
+  const signed = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(path, 60 * 60 * 24 * 30);
+
+  if (!signed.error && signed.data?.signedUrl) {
+    return { ok: true as const, error: null, url: signed.data.signedUrl as string };
+  }
+
+  const publicResult = supabase.storage.from(bucket).getPublicUrl(path);
+  const publicUrl = publicResult?.data?.publicUrl || null;
+
+  if (!publicUrl) {
+    return {
+      ok: false as const,
+      error: signed.error?.message || "Unable to create Supabase Storage URL for receipt.",
+      url: null as string | null,
+    };
+  }
+
+  return { ok: true as const, error: null, url: publicUrl as string };
 }
 
 export async function dispatchDonationInvoice(input: {
@@ -186,8 +233,20 @@ export async function dispatchDonationInvoice(input: {
   const campaignTitle = donation.campaigns?.title || "General Impact Fund";
   const orgName = "Impact Ledger";
   const donorName = donation.donor_name || donorEmail.split("@")[0] || "Supporter";
+  const pdf = createDonationReceiptPdf({
+    donationId: donation.id,
+    donorName,
+    donorEmail,
+    campaignTitle,
+    amountInInr: Number(donation.amount || 0),
+    donatedAtIso: donation.donated_at,
+    orgName,
+    receiptUrl,
+    paymentMethod: donation.payment_method,
+    paymentProvider: donation.payment_provider,
+  });
 
-  const sendResult = await sendViaResend({
+  const sendResult = await sendViaNodemailer({
     to: donorEmail,
     donorName,
     amountInInr: Number(donation.amount || 0),
@@ -199,13 +258,36 @@ export async function dispatchDonationInvoice(input: {
     orgName,
     paymentMethod: donation.payment_method,
     paymentProvider: donation.payment_provider,
+    pdf,
   });
 
-  const status = sendResult.sent
+  let status: DonationInvoiceDispatch["status"] = sendResult.sent
     ? "sent"
     : sendResult.skipped
       ? "skipped"
       : "failed";
+  let resultMessage = sendResult.error || "Invoice dispatch skipped.";
+  let resolvedReceiptUrl = receiptUrl;
+
+  if (!sendResult.sent) {
+    const storageResult = await storePdfInSupabase({
+      tenantId: donation.tenant_id,
+      donationId: donation.id,
+      pdf,
+    });
+
+    if (storageResult.ok && storageResult.url) {
+      resolvedReceiptUrl = storageResult.url;
+      status = "sent";
+      resultMessage = "Email unavailable; receipt stored in Supabase and ready to share.";
+
+      await supabase
+        .from("donations")
+        .update({ receipt_url: resolvedReceiptUrl })
+        .eq("id", donation.id)
+        .eq("tenant_id", donation.tenant_id);
+    }
+  }
 
   await supabase.from("audit_logs").insert({
     tenant_id: donation.tenant_id,
@@ -215,16 +297,14 @@ export async function dispatchDonationInvoice(input: {
     target_id: donation.id,
     metadata: {
       delivery: status,
-      reason: sendResult.error,
-      receipt_url: receiptUrl,
+      reason: resultMessage,
+      receipt_url: resolvedReceiptUrl,
     },
   });
 
   return {
     status,
-    message: sendResult.sent
-      ? "Invoice sent successfully."
-      : sendResult.error || "Invoice dispatch skipped.",
-    receiptUrl,
+    message: sendResult.sent ? "Invoice sent successfully via SMTP." : resultMessage,
+    receiptUrl: resolvedReceiptUrl,
   };
 }

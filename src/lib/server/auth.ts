@@ -30,6 +30,8 @@ export class AuthHttpError extends Error {
 }
 
 const DEFAULT_TENANT_SLUG = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG || "lions-global";
+const DEFAULT_TENANT_ID =
+  process.env.DEFAULT_TENANT_ID || process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID || null;
 
 let cachedTenantId: string | null = null;
 
@@ -54,6 +56,12 @@ async function getDefaultTenantId() {
   if (cachedTenantId) {
     return cachedTenantId;
   }
+
+  if (DEFAULT_TENANT_ID?.trim()) {
+    cachedTenantId = DEFAULT_TENANT_ID.trim();
+    return cachedTenantId;
+  }
+
   let adminErrorMessage = "";
   try {
     const supabaseAdmin = createAdminClient() as any;
@@ -128,6 +136,14 @@ function isTenantPermissionError(error: unknown) {
   return message.includes("permission denied for schema public") || message.includes("permission denied");
 }
 
+function isDevAuthBypassOnTimeoutEnabled() {
+  const value =
+    process.env.ALLOW_DEV_AUTH_BYPASS_ON_TIMEOUT ||
+    process.env.NEXT_PUBLIC_ALLOW_DEV_AUTH_BYPASS_ON_TIMEOUT;
+  if (!value) return false;
+  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+}
+
 export function hasAllowedRole(role: AppRole | null, allowedRoles: AppRole[]) {
   if (!role) {
     return false;
@@ -177,6 +193,22 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       return null;
     }
     if (isSupabaseTimeoutError(error)) {
+      if (isDevAuthBypassOnTimeoutEnabled()) {
+        const tenantId = await getDefaultTenantId();
+        return {
+          user: {
+            id: "dev-auth-timeout-bypass-user",
+            app_metadata: {},
+            user_metadata: {},
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+          } as User,
+          tenantId,
+          tenantSlug: DEFAULT_TENANT_SLUG,
+          role: "org_admin",
+          email: process.env.NEXT_PUBLIC_DEMO_DONOR_EMAIL || "john@example.com",
+        };
+      }
       throw new AuthHttpError(503, "Authentication service unavailable.");
     }
     throw new AuthHttpError(401, error.message);

@@ -19,7 +19,8 @@ type Campaign = {
 type Response = { campaigns: Campaign[] };
 
 export default function AdminCampaignsPage() {
-  const { data, isLoading } = useApiData<Response>("/api/admin/campaigns");
+  const { data, isLoading, error } = useApiData<Response>("/api/admin/campaigns");
+  const campaigns = data?.campaigns || [];
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -29,6 +30,12 @@ export default function AdminCampaignsPage() {
           <h1 className="text-3xl font-display font-extrabold tracking-tight">Campaign Management</h1>
           <p className="text-sm text-muted-foreground">Create, monitor, and manage global stewardship missions.</p>
         </header>
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load campaigns: {error}
+          </div>
+        )}
 
         <div className="no-line-card p-0 overflow-hidden border border-muted">
           <div className="overflow-x-auto">
@@ -45,8 +52,10 @@ export default function AdminCampaignsPage() {
               <tbody className="divide-y divide-muted">
                 {isLoading ? (
                   <tr><td colSpan={5} className="px-6 py-8 text-center">Loading campaigns...</td></tr>
+                ) : campaigns.length === 0 ? (
+                  <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">No campaigns available yet.</td></tr>
                 ) : (
-                  (data?.campaigns || []).map((campaign) => (
+                  campaigns.map((campaign) => (
                     <tr key={campaign.id} className="group hover:bg-muted/20 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">

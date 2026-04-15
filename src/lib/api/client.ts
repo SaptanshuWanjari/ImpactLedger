@@ -18,8 +18,26 @@ export async function fetchJson<T>(input: string, init?: RequestInit): Promise<T
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Request failed with ${response.status}`);
+    let message = `Request failed with ${response.status}`;
+
+    try {
+      const payload = (await response.clone().json()) as { error?: string; message?: string };
+      if (payload?.error || payload?.message) {
+        message = payload.error || payload.message || message;
+      } else {
+        const text = await response.text();
+        if (text) {
+          message = text;
+        }
+      }
+    } catch {
+      const text = await response.text().catch(() => "");
+      if (text) {
+        message = text;
+      }
+    }
+
+    throw new Error(message);
   }
 
   return (await response.json()) as T;

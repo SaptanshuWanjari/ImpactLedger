@@ -53,6 +53,12 @@ export default function AdminSettingsPage() {
           <p className="text-sm text-muted-foreground">Read-only organization and system configuration for this tenant.</p>
         </header>
 
+        {errors.length > 0 && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            One or more settings sources failed to load.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <section className="no-line-card p-6 space-y-4">
             <h2 className="font-display font-bold text-xl">Organization</h2>

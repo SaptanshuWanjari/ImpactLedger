@@ -12,6 +12,13 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+    const message = (error as Error).message || "Dashboard data unavailable.";
+    const lowered = message.toLowerCase();
+    const isServiceIssue =
+      lowered.includes("fetch failed") ||
+      lowered.includes("connect timeout") ||
+      lowered.includes("permission denied");
+
+    return NextResponse.json({ error: message }, { status: isServiceIssue ? 503 : 500 });
   }
 }

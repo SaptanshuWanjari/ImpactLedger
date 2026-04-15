@@ -96,6 +96,12 @@ export default function AdminAnalyticsPage() {
           </div>
         </header>
 
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load analytics: {error}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <MetricCard label="Total Raised" value={data?.kpis.totalRaised || "₹0"} />
           <MetricCard label="Total Spent" value={data?.kpis.totalSpent || "₹0"} />
@@ -169,7 +175,6 @@ export default function AdminAnalyticsPage() {
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
       </main>
     </div>
   );

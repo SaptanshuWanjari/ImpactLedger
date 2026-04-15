@@ -125,6 +125,11 @@ function DonatePageContent() {
         }),
       });
 
+      if (response.manual) {
+        window.location.href = `/donate/manual-success?donationId=${encodeURIComponent(response.donationId)}`;
+        return;
+      }
+
       if (!response.checkout) {
         throw new Error("Checkout details are missing from the payment response.");
       }

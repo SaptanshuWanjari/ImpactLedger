@@ -22,7 +22,7 @@ type DonationsResponse = {
 };
 
 export default function DonorDonationsPage() {
-  const { data, isLoading } = useApiData<DonationsResponse>("/api/donor/donations");
+  const { data, isLoading, error } = useApiData<DonationsResponse>("/api/donor/donations");
   const donations = data?.donations || [];
 
   return (
@@ -38,6 +38,12 @@ export default function DonorDonationsPage() {
             <Plus size={18} /> New Donation
           </Link>
         </header>
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load donations: {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="no-line-card p-6 space-y-2"><TrendingUp size={20} className="text-accent" /><p className="text-xs uppercase">Total Stewardship</p><p className="text-2xl font-display font-extrabold">{donations.reduce((sum, d) => sum + Number(d.amount.replace(/[^0-9.]/g, "")), 0).toLocaleString("en-IN", { style: "currency", currency: "INR" })}</p></div>
@@ -62,6 +68,8 @@ export default function DonorDonationsPage() {
               <tbody className="divide-y divide-muted">
                 {isLoading ? (
                   <tr><td colSpan={6} className="px-6 py-8 text-center">Loading...</td></tr>
+                ) : donations.length === 0 ? (
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">No donations yet.</td></tr>
                 ) : (
                   donations.map((donation) => (
                     <tr key={donation.id} className="group hover:bg-muted/20 transition-colors">

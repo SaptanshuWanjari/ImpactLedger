@@ -2,7 +2,7 @@
 
 import DonorSidebar from "@/components/DonorSidebar";
 import { motion } from "framer-motion";
-import { Heart, TrendingUp, Award, Calendar, PieChart as PieChartIcon, ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import { Heart, TrendingUp, Award, Calendar, PieChart as PieChartIcon, ArrowRight, CheckCircle2, Clock, ExternalLink } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import Link from "next/link";
 import { useApiData } from "@/lib/api/client";
@@ -16,12 +16,12 @@ type DonorDashboard = {
     nextMilestone: string;
   };
   allocation: { name: string; value: number; color: string }[];
-  donationHistory: { id: string; campaign: string; amount: string; date: string; status: string; rawStatus?: string }[];
+  donationHistory: { id: string; campaign: string; amount: string; date: string; status: string; rawStatus?: string; method?: string; receiptUrl?: string | null }[];
   impactTimeline: { date: string; event: string; location: string; impact: string }[];
 };
 
 export default function DonorPortal() {
-  const { data, isLoading } = useApiData<DonorDashboard>("/api/donor/dashboard");
+  const { data, isLoading, error } = useApiData<DonorDashboard>("/api/donor/dashboard");
 
   const impactStats = [
     { label: "Lifetime Donated", value: data?.stats.lifetimeDonated || "-", icon: Heart },
@@ -44,6 +44,12 @@ export default function DonorPortal() {
             New Donation <ArrowRight size={18} />
           </Link>
         </header>
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load donor dashboard: {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {impactStats.map((stat, index) => (
@@ -101,19 +107,27 @@ export default function DonorPortal() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-muted">
+                  <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID</th>
                   <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Campaign</th>
                   <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Amount</th>
                   <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Date</th>
                   <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
+                  <th className="pb-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Receipt</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-muted">
                 {isLoading ? (
-                  <tr><td colSpan={4} className="py-6 text-sm text-muted-foreground">Loading...</td></tr>
+                  <tr><td colSpan={6} className="py-6 text-sm text-muted-foreground">Loading...</td></tr>
+                ) : (data?.donationHistory || []).length === 0 ? (
+                  <tr><td colSpan={6} className="py-6 text-sm text-muted-foreground">No donations yet.</td></tr>
                 ) : (
                   (data?.donationHistory || []).map((donation) => (
                     <tr key={donation.id} className="group hover:bg-muted/30 transition-colors">
-                      <td className="py-4 text-sm font-medium">{donation.campaign}</td>
+                      <td className="py-4 text-xs font-mono text-muted-foreground">{donation.id}</td>
+                      <td className="py-4 text-sm font-medium">
+                        {donation.campaign}
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{donation.method || "N/A"}</p>
+                      </td>
                       <td className="py-4 text-sm font-bold">{donation.amount}</td>
                       <td className="py-4 text-sm text-muted-foreground">{donation.date}</td>
                       <td className="py-4">
@@ -121,6 +135,15 @@ export default function DonorPortal() {
                           <CheckCircle2 size={10} className={(donation.rawStatus || "").toLowerCase() === "succeeded" ? "text-green-600" : "text-muted-foreground"} />
                           {donation.status}
                         </span>
+                      </td>
+                      <td className="py-4 text-sm">
+                        {donation.receiptUrl ? (
+                          <a href={donation.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline text-xs font-bold">
+                            View <ExternalLink size={14} />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Pending</span>
+                        )}
                       </td>
                     </tr>
                   ))
