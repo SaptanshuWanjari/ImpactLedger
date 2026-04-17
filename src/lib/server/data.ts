@@ -39,6 +39,14 @@ async function runWithFetchRetry<T>(operation: () => Promise<T>, attempts = 3, d
   throw lastError instanceof Error ? lastError : new Error("Unknown fetch retry failure.");
 }
 
+async function createPrivilegedClient() {
+  try {
+    return createAdminClient() as any;
+  } catch {
+    return await createClient();
+  }
+}
+
 export async function getTenantId() {
   let supabase: any = null;
 
@@ -318,6 +326,7 @@ export async function getRecentDonations(donorEmail = DEFAULT_DONOR_EMAIL, limit
   return (data || []).map((donation: any) => ({
     id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
     rawId: donation.id,
+    donatedAt: donation.donated_at,
     date: formatShortDate(donation.donated_at),
     campaign: donation.campaigns?.title || "General Fund",
     amount: formatCurrency(donation.amount, donation.currency),
@@ -330,11 +339,91 @@ export async function getRecentDonations(donorEmail = DEFAULT_DONOR_EMAIL, limit
   }));
 }
 
+async function buildDonorAcceptanceLogs(
+  supabase: any,
+  tenantId: string,
+  donations: Array<{
+    id: string;
+    rawId: string;
+    campaign: string;
+    rawStatus?: string;
+    date: string;
+    donatedAt?: string;
+    receiptUrl?: string | null;
+  }>,
+) {
+  if (!donations.length) {
+    return [];
+  }
+
+  const donationIds = donations.map((entry) => entry.rawId).filter(Boolean);
+  let confirmedAtByDonation = new Map<string, string>();
+
+  if (donationIds.length > 0) {
+    const { data: ledgerRows, error: ledgerError } = await supabase
+      .from("donation_ledger")
+      .select("donation_id,event_type,occurred_at")
+      .eq("tenant_id", tenantId)
+      .in("donation_id", donationIds)
+      .eq("event_type", "donation_confirmed")
+      .order("occurred_at", { ascending: false });
+
+    if (ledgerError) {
+      throw new Error(ledgerError.message);
+    }
+
+    for (const row of ledgerRows || []) {
+      if (row?.donation_id && row?.occurred_at && !confirmedAtByDonation.has(row.donation_id)) {
+        confirmedAtByDonation.set(row.donation_id, row.occurred_at);
+      }
+    }
+  }
+
+  const statusLabel = (status: string) => {
+    const normalized = status.toLowerCase();
+    if (normalized === "succeeded") return "Accepted";
+    if (normalized === "pending") return "Pending";
+    if (normalized === "failed") return "Failed";
+    if (normalized === "refunded") return "Refunded";
+    if (normalized === "disputed") return "Disputed";
+    return titleCase(status);
+  };
+
+  return donations
+    .map((donation) => {
+      const rawStatus = (donation.rawStatus || "pending").toLowerCase();
+      const confirmedAt = confirmedAtByDonation.get(donation.rawId) || null;
+      const displayDate = confirmedAt
+        ? formatShortDate(confirmedAt)
+        : donation.donatedAt
+          ? formatShortDate(donation.donatedAt)
+          : donation.date;
+
+      return {
+        donationId: donation.id,
+        date: displayDate,
+        event: confirmedAt ? "Donation verified" : "Donation submitted",
+        campaign: donation.campaign,
+        status: statusLabel(rawStatus),
+        note: donation.receiptUrl
+          ? "Receipt generated"
+          : rawStatus === "succeeded"
+            ? "Waiting for receipt"
+            : "Awaiting admin verification",
+        receiptUrl: donation.receiptUrl || null,
+        sortTime: confirmedAt || donation.donatedAt || "",
+      };
+    })
+    .sort((a, b) => (a.sortTime < b.sortTime ? 1 : -1))
+    .slice(0, 8)
+    .map(({ sortTime, ...entry }) => entry);
+}
+
 export async function getDonorDashboard(donorEmail = DEFAULT_DONOR_EMAIL) {
-  const [donations, ledger] = await Promise.all([
-    getRecentDonations(donorEmail, 20),
-    getTransparencyLedger(10),
-  ]);
+  const supabase = await createClient();
+  const tenantId = await getTenantId();
+  const donations = await getRecentDonations(donorEmail, 20);
+  const acceptanceLogs = await buildDonorAcceptanceLogs(supabase, tenantId, donations as any);
 
   const total = donations.reduce((sum, d) => sum + d.amountValue, 0);
 
@@ -353,12 +442,7 @@ export async function getDonorDashboard(donorEmail = DEFAULT_DONOR_EMAIL) {
       { name: "Operational", value: 10, color: "#737373" },
     ],
     donationHistory: donations,
-    impactTimeline: ledger.slice(0, 3).map((entry) => ({
-      date: entry.date,
-      event: `${entry.campaign} Update`,
-      location: entry.hub,
-      impact: `${entry.type} recorded`,
-    })),
+    acceptanceLogs,
   };
 }
 
@@ -1277,7 +1361,7 @@ export async function getRecentDonationsForCurrentUser(limit = 10) {
     return getRecentDonations(DEFAULT_DONOR_EMAIL, limit);
   }
 
-  const supabase = await createClient();
+  const supabase = await createPrivilegedClient();
   const context = await getAuthContext();
   if (!context) {
     throw new AuthHttpError(401, "Authentication required.");
@@ -1288,12 +1372,15 @@ export async function getRecentDonationsForCurrentUser(limit = 10) {
 
   const { tenantId, user, email } = context;
 
-  const { data: donorRow } = await supabase
+  const { data: donorRow, error: donorError } = await supabase
     .from("donors")
     .select("id,full_name,email")
     .eq("tenant_id", tenantId)
     .eq("auth_user_id", user.id)
     .maybeSingle();
+  if (donorError) {
+    throw new Error(donorError.message);
+  }
 
   let query = supabase
     .from("donations")
@@ -1316,6 +1403,7 @@ export async function getRecentDonationsForCurrentUser(limit = 10) {
   return (data || []).map((donation: any) => ({
     id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
     rawId: donation.id,
+    donatedAt: donation.donated_at,
     date: formatShortDate(donation.donated_at),
     campaign: donation.campaigns?.title || "General Fund",
     amount: formatCurrency(donation.amount, donation.currency),
@@ -1333,7 +1421,7 @@ export async function getDonorDashboardForCurrentUser() {
     return getDonorDashboard(DEFAULT_DONOR_EMAIL);
   }
 
-  const supabase = await createClient();
+  const supabase = await createPrivilegedClient();
   const context = await getAuthContext();
   if (!context) {
     throw new AuthHttpError(401, "Authentication required.");
@@ -1343,9 +1431,8 @@ export async function getDonorDashboardForCurrentUser() {
   }
   const { tenantId, user, email } = context;
 
-  const [donations, ledger, donorResult] = await Promise.all([
+  const [donations, donorResult] = await Promise.all([
     getRecentDonationsForCurrentUser(20),
-    getTransparencyLedger(10),
     supabase
       .from("donors")
       .select("full_name")
@@ -1353,6 +1440,7 @@ export async function getDonorDashboardForCurrentUser() {
       .eq("auth_user_id", user.id)
       .maybeSingle(),
   ]);
+  const acceptanceLogs = await buildDonorAcceptanceLogs(supabase, tenantId, donations as any);
 
   const total = donations.reduce((sum, d) => sum + d.amountValue, 0);
   const donorName =
@@ -1374,12 +1462,7 @@ export async function getDonorDashboardForCurrentUser() {
       { name: "Operational", value: 10, color: "#737373" },
     ],
     donationHistory: donations,
-    impactTimeline: ledger.slice(0, 3).map((entry) => ({
-      date: entry.date,
-      event: `${entry.campaign} Update`,
-      location: entry.hub,
-      impact: `${entry.type} recorded`,
-    })),
+    acceptanceLogs,
   };
 }
 

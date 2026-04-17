@@ -20,14 +20,6 @@ const footerLinks = [
       { name: "About", href: "/about" },
     ],
   },
-  // {
-  //   title: "Legal",
-  //   links: [
-  //     { name: "Privacy Policy", href: "/privacy" },
-  //     { name: "Terms of Service", href: "/terms" },
-  //     { name: "Cookie Policy", href: "/cookies" },
-  //   ],
-  // },
 ];
 
 export default function Footer() {

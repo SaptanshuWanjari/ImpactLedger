@@ -228,12 +228,11 @@ function DonatePageContent() {
     <div className="min-h-screen bg-[#f2f4f7] text-slate-900">
       <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
-          <Link href="/" className="text-xl font-bold text-[#1b4bb3]">Ethos Management</Link>
+          <Link href="/" className="text-xl font-bold text-[#1b4bb3]">Impact Ledger</Link>
           <nav className="hidden items-center gap-7 text-sm text-slate-600 md:flex">
             <Link href="/impact" className="hover:text-slate-900">Impact</Link>
             <Link href="/campaigns" className="hover:text-slate-900">Programs</Link>
             <Link href="/transparency" className="hover:text-slate-900">Reports</Link>
-            <Link href="/donate" className="rounded-full bg-[#0b4abf] px-5 py-2 font-semibold text-white">Donate Now</Link>
           </nav>
         </div>
       </header>
@@ -446,7 +445,7 @@ function DonatePageContent() {
               <div className="mt-5 space-y-3 text-sm">
                 <div className="flex items-center justify-between"><span className="text-slate-500">Selected Amount</span><span className="font-semibold">{amountLabel}</span></div>
                 <div className="flex items-center justify-between"><span className="text-slate-500">Program</span><span className="font-semibold">{campaignId === "general" ? "Primary Support Fund" : "Campaign Contribution"}</span></div>
-                <div className="flex items-center justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{selectedMethod === "card" ? "Card Payment" : "UPI / QR Code"}</span></div>
+                <div className="flex items-center justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{selectedMethod === "card" ? "Card Payment" : "UPI "}</span></div>
               </div>
               <div className="mt-5 border-t border-slate-200 pt-4">
                 <p className="text-sm text-slate-500">Total</p>
@@ -459,7 +458,7 @@ function DonatePageContent() {
 
       <footer className="border-t border-slate-200 bg-white py-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
-          <p>© 2026 Ethos Management. Built for Global Impact.</p>
+          <p>© 2026 Impact Ledger. Built for Global Impact.</p>
           <div className="flex flex-wrap items-center gap-5">
             <Link href="/privacy" className="hover:text-slate-700">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-slate-700">Terms of Service</Link>

@@ -27,7 +27,7 @@ export default function TransparencyPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navigation />
-      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
+      <main className="grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-16 sm:space-y-20">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <p className="text-accent font-bold uppercase tracking-widest text-xs">Radical Transparency</p>
@@ -97,27 +97,6 @@ export default function TransparencyPage() {
               </div>
             </div>
           </section>
-
-          {/* <section className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-1 space-y-6">
-              <h2 className="text-3xl font-display font-extrabold tracking-tight">Audit Reports</h2>
-              <p className="text-muted-foreground leading-relaxed">Quarterly audit summaries are stored and downloadable from the admin workspace.</p>
-            </div>
-            <div className="lg:col-span-2 space-y-4">
-              {["Q3 2025", "Q2 2025", "Q1 2025"].map((report) => (
-                <div key={report} className="no-line-card p-6 flex items-center justify-between group">
-                  <div className="flex items-center gap-6">
-                    <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center text-muted-foreground"><FileText size={24} /></div>
-                    <div>
-                      <h4 className="font-display font-bold text-lg">{report} Stewardship Audit</h4>
-                      <p className="text-xs text-muted-foreground">Auditor: Global Transparency Group</p>
-                    </div>
-                  </div>
-                  <button className="p-2 text-muted-foreground hover:text-primary transition-colors"><Download size={20} /></button>
-                </div>
-              ))}
-            </div>
-          </section> */}
         </div>
       </main>
       <Footer />

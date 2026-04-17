@@ -17,7 +17,7 @@ type DonorDashboard = {
   };
   allocation: { name: string; value: number; color: string }[];
   donationHistory: { id: string; campaign: string; amount: string; date: string; status: string; rawStatus?: string; method?: string; receiptUrl?: string | null }[];
-  impactTimeline: { date: string; event: string; location: string; impact: string }[];
+  acceptanceLogs: { donationId: string; date: string; event: string; campaign: string; status: string; note: string; receiptUrl?: string | null }[];
 };
 
 export default function DonorPortal() {
@@ -26,15 +26,13 @@ export default function DonorPortal() {
   const impactStats = [
     { label: "Lifetime Donated", value: data?.stats.lifetimeDonated || "-", icon: Heart },
     { label: "YTD Impact", value: data?.stats.ytdImpact || "-", icon: TrendingUp },
-    { label: "Patron Since", value: data?.stats.patronSince || "-", icon: Calendar },
-    { label: "Next Milestone", value: data?.stats.nextMilestone || "-", icon: Award },
   ];
 
   return (
     <div className="flex min-h-screen bg-background">
       <DonorSidebar />
 
-      <main className="flex-grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
+      <main className="grow p-4 pt-20 sm:p-6 sm:pt-24 lg:p-8 lg:pt-8 space-y-6 lg:space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-3xl font-display font-extrabold tracking-tight">Impact Summary</h1>
@@ -51,7 +49,7 @@ export default function DonorPortal() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {impactStats.map((stat, index) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} className="no-line-card p-6">
               <div className="w-10 h-10 bg-accent/10 text-accent rounded-xl flex items-center justify-center mb-4"><stat.icon size={20} /></div>
@@ -81,22 +79,36 @@ export default function DonorPortal() {
 
           <div className="lg:col-span-2 no-line-card p-6">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="font-display font-bold text-xl">Impact Timeline</h3>
+              <h3 className="font-display font-bold text-xl">Donation Acceptance Log</h3>
               <Clock className="text-muted-foreground" size={18} />
             </div>
             <div className="space-y-8 relative">
-              {(data?.impactTimeline || []).map((item, index) => (
+              {(data?.acceptanceLogs || []).map((item, index) => (
                 <div key={index} className="relative pl-12">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-bold">{item.event}</p>
                       <span className="text-xs text-muted-foreground">{item.date}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">Location: <span className="text-primary font-medium">{item.location}</span></p>
-                    <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-widest mt-2"><CheckCircle2 size={10} />{item.impact}</div>
+                    <p className="text-xs text-muted-foreground">Campaign: <span className="text-primary font-medium">{item.campaign}</span></p>
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                        <CheckCircle2 size={10} />
+                        {item.status}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{item.note}</span>
+                      {item.receiptUrl ? (
+                        <a href={item.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-accent hover:underline text-xs font-bold">
+                          Receipt <ExternalLink size={14} />
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ))}
+              {!isLoading && (data?.acceptanceLogs || []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No acceptance logs yet.</p>
+              ) : null}
             </div>
           </div>
         </div>

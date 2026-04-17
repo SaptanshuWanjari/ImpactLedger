@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BiHome } from "react-icons/bi";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { User, Heart, History, LogOut, Menu, X } from "lucide-react";
@@ -116,6 +117,14 @@ export default function DonorSidebar() {
         </nav>
 
         <div className="pt-6 border-t border-muted space-y-2">
+                    <Link
+            href="/"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-all"
+          >
+            <BiHome size={18} />
+            Home
+          </Link>
+
           <Link
             href="/auth/signout"
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"

@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { BiHome } from "react-icons/bi";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  HandHelping, 
-  ClipboardList, 
-  LogOut, 
+import {
+  HandHelping,
+  ClipboardList,
+  LogOut,
   TrendingUp,
   BookOpen,
   Menu,
-  X
+  X,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -49,7 +50,9 @@ export default function VolunteerSidebar() {
             <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white">
               <HandHelping size={18} fill="currentColor" />
             </div>
-            <span className="text-sm font-display font-extrabold tracking-tight">Volunteer</span>
+            <span className="text-sm font-display font-extrabold tracking-tight">
+              Volunteer
+            </span>
           </div>
           <button
             type="button"
@@ -64,18 +67,27 @@ export default function VolunteerSidebar() {
       </div>
 
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/35" onClick={closeMenu}>
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/35"
+          onClick={closeMenu}
+        >
           <aside
             className="absolute top-16 left-0 bottom-0 w-72 max-w-[85vw] bg-white border-r border-muted p-5 overflow-y-auto"
             onClick={(event) => event.stopPropagation()}
           >
             <nav className="space-y-2">
               <div className="flex items-center justify-between mb-4 px-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Volunteer Menu</p>
-                <div className={cn(
-                  "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full",
-                  isOnline ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
-                )}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Volunteer Menu
+                </p>
+                <div
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full",
+                    isOnline
+                      ? "bg-green-50 text-green-600"
+                      : "bg-red-50 text-red-600",
+                  )}
+                >
                   {isOnline ? "Online" : "Offline"}
                 </div>
               </div>
@@ -88,7 +100,7 @@ export default function VolunteerSidebar() {
                     "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
                     pathname === link.href
                       ? "bg-green-50 text-green-600"
-                      : "text-muted-foreground hover:bg-muted hover:text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-primary",
                   )}
                 >
                   <link.icon size={18} />
@@ -115,12 +127,16 @@ export default function VolunteerSidebar() {
           <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white">
             <HandHelping size={18} fill="currentColor" />
           </div>
-          <span className="text-lg font-display font-extrabold tracking-tighter">Volunteer Hub</span>
+          <span className="text-lg font-display font-extrabold tracking-tighter">
+            Volunteer Hub
+          </span>
         </div>
 
         <nav className="flex-grow space-y-2">
           <div className="flex items-center justify-between mb-4 px-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Volunteer Menu</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Volunteer Menu
+            </p>
           </div>
           {sidebarLinks.map((link) => (
             <Link
@@ -130,7 +146,7 @@ export default function VolunteerSidebar() {
                 "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all",
                 pathname === link.href
                   ? "bg-green-50 text-green-600"
-                  : "text-muted-foreground hover:bg-muted hover:text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-primary",
               )}
             >
               <link.icon size={18} />
@@ -140,6 +156,13 @@ export default function VolunteerSidebar() {
         </nav>
 
         <div className="pt-6 border-t border-muted space-y-2">
+          <Link
+            href="/"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-all"
+          >
+            <BiHome size={18} />
+            Home
+          </Link>
           <Link
             href="/auth/signout"
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
