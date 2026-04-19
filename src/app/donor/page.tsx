@@ -12,8 +12,6 @@ type DonorDashboard = {
   stats: {
     lifetimeDonated: string;
     ytdImpact: string;
-    patronSince: string;
-    nextMilestone: string;
   };
   allocation: { name: string; value: number; color: string }[];
   donationHistory: { id: string; campaign: string; amount: string; date: string; status: string; rawStatus?: string; method?: string; receiptUrl?: string | null }[];

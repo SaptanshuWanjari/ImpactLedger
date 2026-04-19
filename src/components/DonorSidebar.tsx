@@ -21,6 +21,11 @@ export default function DonorSidebar() {
 
   const closeMenu = () => setIsOpen(false);
 
+  async function handleSignOut() {
+    await fetch("/auth/signout", { method: "POST" });
+    window.location.href = "/auth/login";
+  }
+
   return (
     <>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-muted">
@@ -69,14 +74,17 @@ export default function DonorSidebar() {
               ))}
             </nav>
             <div className="pt-6 mt-6 border-t border-muted">
-              <Link
-                href="/auth/signout"
-                onClick={closeMenu}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+              <button
+                type="button"
+                onClick={async () => {
+                  closeMenu();
+                  await handleSignOut();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
               >
                 <LogOut size={18} />
                 Sign Out
-              </Link>
+              </button>
             </div>
           </aside>
         </div>
@@ -125,13 +133,14 @@ export default function DonorSidebar() {
             Home
           </Link>
 
-          <Link
-            href="/auth/signout"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all"
           >
             <LogOut size={18} />
             Sign Out
-          </Link>
+          </button>
         </div>
       </aside>
     </>

@@ -368,13 +368,12 @@ async function buildDonorAcceptanceLogs(
       .eq("event_type", "donation_confirmed")
       .order("occurred_at", { ascending: false });
 
-    if (ledgerError) {
-      throw new Error(ledgerError.message);
-    }
-
-    for (const row of ledgerRows || []) {
-      if (row?.donation_id && row?.occurred_at && !confirmedAtByDonation.has(row.donation_id)) {
-        confirmedAtByDonation.set(row.donation_id, row.occurred_at);
+    // Keep dashboard resilient even if ledger read is temporarily unavailable.
+    if (!ledgerError) {
+      for (const row of ledgerRows || []) {
+        if (row?.donation_id && row?.occurred_at && !confirmedAtByDonation.has(row.donation_id)) {
+          confirmedAtByDonation.set(row.donation_id, row.occurred_at);
+        }
       }
     }
   }
@@ -419,6 +418,80 @@ async function buildDonorAcceptanceLogs(
     .map(({ sortTime, ...entry }) => entry);
 }
 
+async function resolveCurrentDonorScope(
+  supabase: any,
+  tenantId: string,
+  userId: string,
+  email: string | null,
+) {
+  const { data: donorRow, error: donorError } = await supabase
+    .from("donors")
+    .select("id,full_name,email")
+    .eq("tenant_id", tenantId)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (donorError) {
+    throw new Error(donorError.message);
+  }
+
+  return {
+    donorId: donorRow?.id || null,
+    donorName: donorRow?.full_name || (email ? email.split("@")[0] : "Donor"),
+    email,
+  };
+}
+
+async function getRecentDonationsForDonorScope(input: {
+  supabase: any;
+  tenantId: string;
+  donorId?: string | null;
+  donorEmail?: string | null;
+  limit: number;
+}) {
+  const { supabase, tenantId, donorId, donorEmail, limit } = input;
+
+  let query = supabase
+    .from("donations")
+    .select("id,amount,currency,payment_method,status,receipt_url,donated_at,campaigns(title)")
+    .eq("tenant_id", tenantId)
+    .order("donated_at", { ascending: false })
+    .limit(limit);
+
+  // Use both donor_id and donor_email so manually created/legacy donations
+  // tied only by email are still visible for the signed-in donor.
+  // Strict ownership rule:
+  // - always include donor_id-owned rows
+  // - include email rows only when donor_id is null (legacy/manual rows)
+  if (donorId && donorEmail) {
+    query = query.or(`donor_id.eq.${donorId},and(donor_id.is.null,donor_email.eq.${donorEmail})`);
+  } else if (donorId) {
+    query = query.eq("donor_id", donorId);
+  } else if (donorEmail) {
+    query = query.is("donor_id", null).eq("donor_email", donorEmail);
+  } else {
+    return [];
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  return (data || []).map((donation: any) => ({
+    id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
+    rawId: donation.id,
+    donatedAt: donation.donated_at,
+    date: formatShortDate(donation.donated_at),
+    campaign: donation.campaigns?.title || "General Fund",
+    amount: formatCurrency(donation.amount, donation.currency),
+    amountValue: Number(donation.amount || 0),
+    method: donation.payment_method || "Card",
+    rawStatus: donation.status,
+    status: titleCase(donation.status),
+    receiptUrl: donation.receipt_url || null,
+    impact: "Impact verified",
+  }));
+}
+
 export async function getDonorDashboard(donorEmail = DEFAULT_DONOR_EMAIL) {
   const supabase = await createClient();
   const tenantId = await getTenantId();
@@ -432,8 +505,6 @@ export async function getDonorDashboard(donorEmail = DEFAULT_DONOR_EMAIL) {
     stats: {
       lifetimeDonated: formatCurrency(total),
       ytdImpact: formatCurrency(total * 0.35),
-      patronSince: "2022",
-      nextMilestone: formatCurrency(Math.ceil((total + 1) / 5000) * 5000),
     },
     allocation: [
       { name: "Clean Water", value: 45, color: "#00338D" },
@@ -1371,49 +1442,15 @@ export async function getRecentDonationsForCurrentUser(limit = 10) {
   }
 
   const { tenantId, user, email } = context;
+  const donorScope = await resolveCurrentDonorScope(supabase, tenantId, user.id, email);
 
-  const { data: donorRow, error: donorError } = await supabase
-    .from("donors")
-    .select("id,full_name,email")
-    .eq("tenant_id", tenantId)
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-  if (donorError) {
-    throw new Error(donorError.message);
-  }
-
-  let query = supabase
-    .from("donations")
-    .select("id,amount,currency,payment_method,status,receipt_url,donated_at,campaigns(title)")
-    .eq("tenant_id", tenantId)
-    .order("donated_at", { ascending: false })
-    .limit(limit);
-
-  if (donorRow?.id) {
-    query = query.eq("donor_id", donorRow.id);
-  } else if (email) {
-    query = query.eq("donor_email", email);
-  } else {
-    return [];
-  }
-
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-
-  return (data || []).map((donation: any) => ({
-    id: `DON-${String(donation.id).slice(0, 6).toUpperCase()}`,
-    rawId: donation.id,
-    donatedAt: donation.donated_at,
-    date: formatShortDate(donation.donated_at),
-    campaign: donation.campaigns?.title || "General Fund",
-    amount: formatCurrency(donation.amount, donation.currency),
-    amountValue: Number(donation.amount || 0),
-    method: donation.payment_method || "Card",
-    rawStatus: donation.status,
-    status: titleCase(donation.status),
-    receiptUrl: donation.receipt_url || null,
-    impact: "Impact verified",
-  }));
+  return getRecentDonationsForDonorScope({
+    supabase,
+    tenantId,
+    donorId: donorScope.donorId,
+    donorEmail: donorScope.email,
+    limit,
+  });
 }
 
 export async function getDonorDashboardForCurrentUser() {
@@ -1430,30 +1467,27 @@ export async function getDonorDashboardForCurrentUser() {
     throw new AuthHttpError(403, "You do not have access to this resource.");
   }
   const { tenantId, user, email } = context;
+  const donorScope = await resolveCurrentDonorScope(supabase, tenantId, user.id, email);
+  const donationsForLogs = await getRecentDonationsForDonorScope({
+    supabase,
+    tenantId,
+    donorId: donorScope.donorId,
+    donorEmail: donorScope.email,
+    // Keep a wider window for acceptance timeline so old donations verified today
+    // still surface on the donor dashboard.
+    limit: 100,
+  });
 
-  const [donations, donorResult] = await Promise.all([
-    getRecentDonationsForCurrentUser(20),
-    supabase
-      .from("donors")
-      .select("full_name")
-      .eq("tenant_id", tenantId)
-      .eq("auth_user_id", user.id)
-      .maybeSingle(),
-  ]);
-  const acceptanceLogs = await buildDonorAcceptanceLogs(supabase, tenantId, donations as any);
+  const acceptanceLogs = await buildDonorAcceptanceLogs(supabase, tenantId, donationsForLogs as any);
+  const donations = donationsForLogs.slice(0, 12);
 
   const total = donations.reduce((sum, d) => sum + d.amountValue, 0);
-  const donorName =
-    donorResult.data?.full_name ||
-    (email ? email.split("@")[0] : "Donor");
 
   return {
-    donorName,
+    donorName: donorScope.donorName,
     stats: {
       lifetimeDonated: formatCurrency(total),
       ytdImpact: formatCurrency(total * 0.35),
-      patronSince: "2022",
-      nextMilestone: formatCurrency(Math.ceil((total + 1) / 5000) * 5000),
     },
     allocation: [
       { name: "Clean Water", value: 45, color: "#00338D" },

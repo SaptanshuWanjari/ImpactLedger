@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
 
     if (body.action === "verify") {
       const receiptUrl = donation.receipt_url || resolveReceiptUrl(donation.id, request.nextUrl.origin);
+      const providerEventId = `admin_verify:${donation.id}`;
 
       if (donation.status !== "succeeded") {
         const { error: updateError } = await supabase
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
             status: "succeeded",
             currency: donation.currency || "INR",
             payment_method: "GPay QR",
-            payment_provider: "razorpay",
+            payment_provider: "gpay",
             receipt_url: receiptUrl,
             failure_reason: null,
           })
@@ -98,28 +99,30 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           throw new Error(updateError.message);
         }
+      }
 
-        const providerEventId = `admin_verify:${donation.id}`;
-        const { error: ledgerError } = await supabase.from("donation_ledger").insert({
-          tenant_id: context.tenantId,
-          donation_id: donation.id,
-          donor_id: donation.donor_id || null,
-          campaign_id: donation.campaign_id || null,
-          event_type: "donation_confirmed",
-          amount: Number(donation.amount || 0),
-          currency: donation.currency || "INR",
-          provider_event_id: providerEventId,
-          source: "admin_action",
-          metadata: {
-            provider: "gpay",
-            verification: "manual_admin",
-          },
-        });
+      // Always ensure the confirmation event exists for donor acceptance logs.
+      const { error: ledgerError } = await supabase.from("donation_ledger").insert({
+        tenant_id: context.tenantId,
+        donation_id: donation.id,
+        donor_id: donation.donor_id || null,
+        campaign_id: donation.campaign_id || null,
+        event_type: "donation_confirmed",
+        amount: Number(donation.amount || 0),
+        currency: donation.currency || "INR",
+        provider_event_id: providerEventId,
+        source: "admin_action",
+        metadata: {
+          provider: "gpay",
+          verification: "manual_admin",
+        },
+      });
 
-        if (ledgerError && ledgerError.code !== "23505") {
-          throw new Error(ledgerError.message);
-        }
+      if (ledgerError && ledgerError.code !== "23505") {
+        throw new Error(ledgerError.message);
+      }
 
+      if (donation.status !== "succeeded") {
         const { error: auditError } = await supabase.from("audit_logs").insert({
           tenant_id: context.tenantId,
           actor_user_id: context.user.id,
