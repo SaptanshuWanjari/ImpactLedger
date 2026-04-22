@@ -1,0 +1,41 @@
+                                       CHAPTER 7
+                               IMPLEMENTATION
+
+
+The implementation of ImpactLedger is organized into three primary modules:
+frontend, backend, and database integration. The frontend module, developed using
+React and Next.js, includes the following key components: a login and registration
+interface with form validation, a project management dashboard for creating and
+editing NGO initiatives, an activity logging interface for recording field-level
+actions, a donation tracker with input forms and summary views, and an impact
+visualization panel featuring bar charts, line graphs, and summary statistics rendered
+using a JavaScript charting library.
+
+
+The backend module is implemented in Node.js using the Express framework. It
+exposes a set of RESTful API endpoints that the frontend consumes for all data
+operations. Key endpoints include routes for user authentication using JSON Web
+Tokens (JWT), project CRUD operations, activity and donation recording, and
+retrieval of aggregated impact data for dashboard rendering. Input validation and
+error handling are implemented at the API layer to ensure data integrity.
+Middleware functions enforce role-based access control, preventing unauthorized
+users from accessing or modifying restricted resources.
+
+
+The database module uses MongoDB with a structured collection schema. Data
+relationships are managed through document references, and indexes are applied on
+frequently queried fields such as project identifiers and user roles to optimize read
+performance. The integration between the backend and database is handled through
+Mongoose, an object data modeling library that provides schema validation and
+query abstraction.
+
+
+The deployed application is accessible at https://impact-ledger-cep.vercel.app/ and
+the source code is available at https://github.com/SaptanshuWanjari/ImpactLedger.
+Screenshots of the developed website, including the dashboard, project listing page,
+and activity log interface, are included in the Appendices section of this report as
+per the project guidelines.
+
+
+                                                                                        30
+

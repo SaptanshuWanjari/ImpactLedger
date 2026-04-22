@@ -1,0 +1,37 @@
+                                    CHAPTER 10
+                      CONCLUSION AND FUTURE SCOPE
+
+
+ImpactLedger successfully achieves its primary objective of providing a transparent
+and accountable digital platform for managing community-driven NGO initiatives.
+The system addresses a genuine operational need identified through engagement
+with Lions Club Nagpur Sawaj and enables organizations to replace manual, error-
+prone record-keeping with a structured, accessible web application. The platform
+improves visibility into project activities for all stakeholders, reduces the time
+required for report preparation, and strengthens donor confidence through verifiable
+impact data.
+
+
+The project demonstrates that student-led community engagement initiatives can
+deliver practical and meaningful technological contributions when guided by a clear
+understanding of real-world problems. Through the application of modern web
+development practices and an Agile development approach, the team was able to
+build and deploy a functional platform within an academic semester.
+
+
+Several enhancements are planned for future development cycles. The most
+immediate priority is the development of a mobile application for Android and iOS
+to extend accessibility to users who primarily use smartphones. Integration of AI-
+based analytics is envisioned to enable predictive insights, such as estimating the
+projected impact of a project based on historical data patterns. Blockchain
+technology is also being considered as a mechanism for creating tamper-proof
+records of donations and activity logs, further strengthening the platform's
+transparency guarantees. Additional improvements to the dashboard, including
+customizable report templates and export capabilities in multiple formats, will
+enhance usability for diverse organizational needs.
+
+
+
+
+                                                                                      38
+

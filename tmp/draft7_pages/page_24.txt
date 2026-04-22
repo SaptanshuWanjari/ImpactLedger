@@ -1,0 +1,17 @@
+                             Figure 5.3: Use Case Diagram
+
+
+
+
+  Figure 5.3: Use Case Diagram for ImpactLedger showing interactions of NGO
+                   Admin, Donor, and Platform Admin actors.
+
+The use case diagram identifies three primary actors — NGO Admin, Donor, and Platform Admin — and
+maps each to the system functions they are authorized to perform. Role-based separation ensures that
+sensitive operations such as project deletion and user management are restricted to the Platform Admin.
+
+
+
+
+                                                                                                    24
+

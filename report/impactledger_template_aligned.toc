@@ -1,0 +1,25 @@
+\contentsline {section}{\numberline {1}CERTIFICATE}{1}{section.1}%
+\contentsline {section}{\numberline {2}DECLARATION}{2}{section.2}%
+\contentsline {section}{\numberline {3}ACKNOWLEDGEMENTS}{3}{section.3}%
+\contentsline {section}{\numberline {4}ABSTRACT}{4}{section.4}%
+\contentsline {section}{\numberline {5}LIST OF FIGURES}{6}{section.5}%
+\contentsline {section}{\numberline {6}LIST OF TABLES}{6}{section.6}%
+\contentsline {section}{\numberline {7}CHAPTER 1\\INTRODUCTION}{7}{section.7}%
+\contentsline {section}{\numberline {8}CHAPTER 2\\COMMUNITY ANALYSIS}{8}{section.8}%
+\contentsline {section}{\numberline {9}CHAPTER 3\\LITERATURE REVIEW}{9}{section.9}%
+\contentsline {section}{\numberline {10}CHAPTER 4\\SYSTEM REQUIREMENTS}{10}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Table 4.1: Functional Requirements of ImpactLedger}{10}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Table 4.2: Non-Functional Requirements of ImpactLedger}{11}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Table 4.3: Hardware and Software Requirements}{11}{subsection.10.3}%
+\contentsline {section}{\numberline {11}CHAPTER 5\\SYSTEM DESIGN}{12}{section.11}%
+\contentsline {section}{\numberline {12}CHAPTER 6\\METHODOLOGY}{15}{section.12}%
+\contentsline {section}{\numberline {13}CHAPTER 7\\IMPLEMENTATION}{17}{section.13}%
+\contentsline {subsection}{\numberline {13.1}Table 7.1: Screenshot Placement Guide for Chapter 7}{18}{subsection.13.1}%
+\contentsline {section}{\numberline {14}CHAPTER 8\\RESULTS AND IMPACT}{19}{section.14}%
+\contentsline {subsection}{\numberline {14.1}Table 8.1: Before vs After Comparison --- ImpactLedger Implementation}{19}{subsection.14.1}%
+\contentsline {subsection}{\numberline {14.2}Table 8.2: System Performance Metrics --- ImpactLedger}{20}{subsection.14.2}%
+\contentsline {section}{\numberline {15}CHAPTER 9\\DISCUSSION}{20}{section.15}%
+\contentsline {section}{\numberline {16}CHAPTER 10\\CONCLUSION AND FUTURE SCOPE}{20}{section.16}%
+\contentsline {section}{\numberline {17}QUICK REFERENCE: ALL FIGURES AND TABLES}{21}{section.17}%
+\contentsline {section}{\numberline {18}REFERENCES}{21}{section.18}%
+\contentsline {section}{\numberline {19}APPENDICES}{22}{section.19}%

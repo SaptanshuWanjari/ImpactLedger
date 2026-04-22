@@ -1,0 +1,42 @@
+                                    CHAPTER 1
+                                 INTRODUCTION
+
+
+Community Engagement Projects (CEPs) serve as a bridge between academic
+learning and real-world problem-solving, enabling students to design and deploy
+technology-driven solutions for societal challenges. These projects provide an
+opportunity to apply theoretical knowledge in practical settings while contributing
+meaningfully to communities that often lack access to modern digital infrastructure.
+ImpactLedger is one such initiative, developed in collaboration with Lions Club
+Nagpur Sawaj to address a persistent gap in the operational transparency of non-
+governmental organizations (NGOs).
+
+
+In the current landscape, NGOs and community-driven projects rely heavily on
+manual or informal methods for tracking activities, recording donations, and
+reporting outcomes. This approach not only introduces the risk of human error and
+data inconsistency, but also reduces the confidence of donors and other stakeholders
+in the overall management of projects. The absence of structured digital systems
+leads to delayed reporting, unverified claims of impact, and an overall decline in
+accountability.
+
+
+Digital solutions play a crucial role in modern community engagement projects by
+enabling structured data management, real-time monitoring, and improved
+transparency. Unlike traditional manual systems, digital platforms ensure accurate
+record-keeping and reduce the risk of data loss or inconsistency. They also allow
+stakeholders to access project information instantly, regardless of location. This
+improves accountability, strengthens donor confidence, and enables better decision-
+making through data-driven insights.
+
+
+The primary objective of ImpactLedger is to develop a centralized, web-based
+platform that enables NGOs to record and manage their activities, track incoming
+contributions, and present verified impact data through interactive dashboards. By
+digitizing these processes, the platform ensures that all stakeholders, including
+
+
+
+
+                                                                                     11
+

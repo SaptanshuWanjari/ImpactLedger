@@ -15,34 +15,50 @@ export async function GET(request: NextRequest) {
     const nextPath = requestUrl.searchParams.get("next");
 
     const supabase = await createClient();
+    let authUser = null;
 
     if (code) {
-      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       if (exchangeError) {
         const loginUrl = new URL("/auth/login", requestUrl.origin);
         loginUrl.searchParams.set("error", exchangeError.message);
         return NextResponse.redirect(loginUrl);
       }
+      authUser = data.user;
     }
 
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
+    if (!authUser) {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
-    if (error) {
-      if (isStaleSessionError(error)) {
-        throw new AuthHttpError(401, "Session expired. Please sign in again.");
+      if (error) {
+        if (isStaleSessionError(error)) {
+          throw new AuthHttpError(401, "Session expired. Please sign in again.");
+        }
+        throw new AuthHttpError(401, error.message);
       }
-      throw new AuthHttpError(401, error.message);
+      authUser = user;
     }
 
-    if (!user) {
+    if (!authUser) {
       throw new AuthHttpError(401, "Authentication required.");
     }
 
-    const provisioned = await ensureUserProvisioned(user);
-    await supabase.auth.refreshSession();
+    const provisioned = await ensureUserProvisioned(authUser);
+    
+    // Only refresh session if we didn't just get it from an exchange,
+    // OR if ensureUserProvisioned actually updated the user's role metadata.
+    // However, to be safe and ensure claims are synced, we refresh.
+    // To optimize further, ensureUserProvisioned could return a flag `metadataUpdated`.
+    if (provisioned.metadataUpdated) {
+        await supabase.auth.refreshSession();
+    } else if (!code) {
+        // Just refresh if it was an existing session to ensure it's valid
+        await supabase.auth.refreshSession();
+    }
+
     const destination = sanitizeNextPath(nextPath, provisioned.homePath);
 
     return NextResponse.redirect(new URL(destination, requestUrl.origin));
@@ -51,3 +67,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/auth/login?error=${message}`, request.url));
   }
 }
+

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Heart, Menu, X, User, LayoutDashboard, Globe, HandHelping, ShieldCheck } from "lucide-react";
+import { Heart, Menu, X, User, LayoutDashboard, Globe, HandHelping, ShieldCheck, LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ProfileDropdown from "./ProfileDropdown";
+import { createClient } from "@/lib/supabase/client";
 
 const navLinks = [
   { name: "Campaigns", href: "/campaigns", icon: Globe },
@@ -13,13 +15,13 @@ const navLinks = [
   { name: "Transparency", href: "/transparency", icon: ShieldCheck },
   { name: "Volunteer", href: "/volunteer", icon: HandHelping },
   { name: "About", href: "/about", icon: User },
-  /* { name: "Contact", href: "/contact", icon: Menu }, */
 ];
 
 export default function Navigation() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -29,6 +31,15 @@ export default function Navigation() {
 
   useEffect(() => {
     setIsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getSession();
+      setIsLoggedIn(!!data.session);
+    };
+    checkAuth();
   }, [pathname]);
 
   return (
@@ -63,20 +74,19 @@ export default function Navigation() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
-          <Link
-            href="/admin"
-            className="p-2 text-muted-foreground hover:text-primary transition-colors"
-            title="Admin Dashboard"
-          >
-            <LayoutDashboard size={20} />
-          </Link>
-          <Link
-            href="/donor"
-            className="p-2 text-muted-foreground hover:text-primary transition-colors"
-            title="Donor Portal"
-          >
-            <User size={20} />
-          </Link>
+          <ProfileDropdown onLogout={() => setIsLoggedIn(false)} />
+          
+          {!isLoggedIn && (
+            <Link
+              href="/auth/login"
+              className="p-2 text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium"
+              title="Login"
+            >
+              <LogIn size={20} />
+              <span>Login</span>
+            </Link>
+          )}
+
           <Link href="/donate" className="btn-primary py-2 px-6 text-sm">
             Donate Now
           </Link>
@@ -115,22 +125,24 @@ export default function Navigation() {
                 </Link>
               ))}
               <hr className="border-muted" />
-              <Link
-                href="/admin"
-                className="flex items-center gap-3 text-lg font-medium text-muted-foreground"
-                onClick={() => setIsOpen(false)}
-              >
-                <LayoutDashboard size={20} />
-                Admin Dashboard
-              </Link>
-              <Link
-                href="/donor"
-                className="flex items-center gap-3 text-lg font-medium text-muted-foreground"
-                onClick={() => setIsOpen(false)}
-              >
-                <User size={20} />
-                Donor Portal
-              </Link>
+              
+              {!isLoggedIn ? (
+                <Link
+                  href="/auth/login"
+                  className="flex items-center gap-3 text-lg font-medium text-muted-foreground"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <LogIn size={20} />
+                  Login
+                </Link>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="px-2" onClick={() => setIsOpen(false)}>
+                     <ProfileDropdown onLogout={() => setIsLoggedIn(false)} />
+                  </div>
+                </div>
+              )}
+              
               <Link
                 href="/donate"
                 className="btn-primary text-center mt-2"

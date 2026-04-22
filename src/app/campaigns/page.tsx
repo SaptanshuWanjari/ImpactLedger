@@ -39,12 +39,16 @@ export default function CampaignsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories = useMemo(() => ["All", ...Array.from(new Set(campaigns.map((c) => c.category)))], [campaigns]);
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(campaigns.map((c) => c.category)))],
+    [campaigns],
+  );
 
   const filteredCampaigns = useMemo(
     () =>
       campaigns.filter((campaign) => {
-        const matchesCategory = selectedCategory === "All" || campaign.category === selectedCategory;
+        const matchesCategory =
+          selectedCategory === "All" || campaign.category === selectedCategory;
         const matchesSearch =
           campaign.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           campaign.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -62,13 +66,15 @@ export default function CampaignsPage() {
     <div className="flex flex-col min-h-screen">
       <Navigation />
 
-      <main className="flex-grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
+      <main className="grow pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="space-y-4">
-            <p className="text-accent font-bold uppercase tracking-widest text-xs">Global Impact Dashboard</p>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">Active Missions.</h1>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tighter leading-none">
+              Active Missions.
+            </h1>
             <p className="text-base sm:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-              Explore and fund verified missions managed by Lions International stewards across the globe.
+              Explore and fund verified missions managed by Lions International
+              stewards across the globe.
             </p>
           </div>
 
@@ -78,7 +84,11 @@ export default function CampaignsPage() {
                 stat.key === "total"
                   ? String(campaigns.length)
                   : stat.key === "funds"
-                    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(totalRaised)
+                    ? new Intl.NumberFormat("en-IN", {
+                        style: "currency",
+                        currency: "INR",
+                        maximumFractionDigits: 0,
+                      }).format(totalRaised)
                     : stat.key === "stewards"
                       ? "12.5K"
                       : "1.2M";
@@ -95,8 +105,12 @@ export default function CampaignsPage() {
                     <stat.icon size={20} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-2xl font-display font-extrabold tracking-tight">{value}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl font-display font-extrabold tracking-tight">
+                      {value}
+                    </p>
                   </div>
                 </motion.div>
               );
@@ -121,7 +135,10 @@ export default function CampaignsPage() {
               ))}
             </div>
             <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={16}
+              />
               <input
                 type="text"
                 placeholder="Search by mission or location..."
@@ -135,14 +152,23 @@ export default function CampaignsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="no-line-card h-80 animate-pulse bg-muted/40" />
+                <div
+                  key={index}
+                  className="no-line-card h-80 animate-pulse bg-muted/40"
+                />
               ))
             ) : filteredCampaigns.length > 0 ? (
-              filteredCampaigns.map((campaign) => <CampaignCard key={campaign.id} {...campaign} />)
+              filteredCampaigns.map((campaign) => (
+                <CampaignCard key={campaign.id} {...campaign} />
+              ))
             ) : (
               <div className="col-span-full py-20 text-center space-y-4">
-                <h3 className="text-2xl font-display font-bold">No missions found.</h3>
-                <p className="text-muted-foreground">Try adjusting your filters or search query.</p>
+                <h3 className="text-2xl font-display font-bold">
+                  No missions found.
+                </h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your filters or search query.
+                </p>
                 <button
                   onClick={() => {
                     setSelectedCategory("All");

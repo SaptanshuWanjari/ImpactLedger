@@ -282,69 +282,85 @@ export async function ensureUserProvisioned(user: User) {
   const tenantId = await getDefaultTenantId();
   const fullName = displayNameFromUser(user);
 
-  const { error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .upsert(
-      {
-        id: user.id,
-        full_name: fullName,
-        email: user.email || null,
-      },
-      { onConflict: "id" },
-    );
+  // 1. Upsert Profile
+  const profilePromise = supabaseAdmin.from("profiles").upsert(
+    {
+      id: user.id,
+      full_name: fullName,
+      email: user.email || null,
+    },
+    { onConflict: "id" }
+  );
 
-  if (profileError) {
-    throw new Error(`Unable to create profile: ${profileError.message}`);
-  }
+  // 2. Assign Membership
+  const membershipPromise = (async () => {
+    const { data: membership, error: membershipError } = await supabaseAdmin
+      .from("tenant_memberships")
+      .select("id,role")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-  const { data: membership, error: membershipError } = await supabaseAdmin
-    .from("tenant_memberships")
-    .select("id,role")
-    .eq("tenant_id", tenantId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (membershipError) {
-    throw new Error(`Unable to resolve membership: ${membershipError.message}`);
-  }
-
-  const membershipRole = membership?.role;
-  const role: AppRole =
-    membershipRole === "org_admin" || membershipRole === "volunteer" || membershipRole === "donor"
-      ? membershipRole
-      : "donor";
-
-  if (!membership) {
-    const { error: insertMembershipError } = await supabaseAdmin.from("tenant_memberships").insert({
-      tenant_id: tenantId,
-      user_id: user.id,
-      role,
-    });
-
-    if (insertMembershipError) {
-      throw new Error(`Unable to create tenant membership: ${insertMembershipError.message}`);
+    if (membershipError) {
+      throw new Error(`Unable to resolve membership: ${membershipError.message}`);
     }
-  }
 
-  if (user.email) {
-    const { error: donorError } = await supabaseAdmin.from("donors").upsert(
-      {
+    const membershipRole = membership?.role;
+    const role: AppRole =
+      membershipRole === "org_admin" || membershipRole === "volunteer" || membershipRole === "donor"
+        ? membershipRole
+        : "donor";
+
+    if (!membership) {
+      const { error: insertMembershipError } = await supabaseAdmin.from("tenant_memberships").insert({
         tenant_id: tenantId,
-        auth_user_id: user.id,
-        full_name: fullName,
-        email: user.email,
-        communications_opt_in: true,
-      },
-      { onConflict: "tenant_id,email" },
-    );
+        user_id: user.id,
+        role,
+      });
 
-    if (donorError) {
-      throw new Error(`Unable to create donor profile: ${donorError.message}`);
+      if (insertMembershipError) {
+        throw new Error(`Unable to create tenant membership: ${insertMembershipError.message}`);
+      }
     }
+
+    return role;
+  })();
+
+  // 3. Upsert Donor Profile
+  const donorPromise = (async () => {
+    if (user.email) {
+      const { error: donorError } = await supabaseAdmin.from("donors").upsert(
+        {
+          tenant_id: tenantId,
+          auth_user_id: user.id,
+          full_name: fullName,
+          email: user.email,
+          communications_opt_in: true,
+        },
+        { onConflict: "tenant_id,email" }
+      );
+
+      if (donorError) {
+        throw new Error(`Unable to create donor profile: ${donorError.message}`);
+      }
+    }
+  })();
+
+  // Wait for all 3 disjoint DB operations to finish in parallel
+  const [profileRes, role] = await Promise.all([
+    profilePromise,
+    membershipPromise,
+    donorPromise,
+  ]);
+
+  if (profileRes.error) {
+    throw new Error(`Unable to create profile: ${profileRes.error.message}`);
   }
 
+  // 4. Update metadata if changed
   const existingMetadata = (user.app_metadata || {}) as Record<string, unknown>;
   const appRole = role;
+  let metadataUpdated = false;
 
   if (existingMetadata.app_role !== appRole || existingMetadata.default_tenant_slug !== DEFAULT_TENANT_SLUG) {
     const { error: updateUserError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
@@ -358,12 +374,14 @@ export async function ensureUserProvisioned(user: User) {
     if (updateUserError) {
       throw new Error(`Unable to update user metadata: ${updateUserError.message}`);
     }
+    metadataUpdated = true;
   }
 
   return {
     tenantId,
     role,
     homePath: getHomePathForRole(role),
+    metadataUpdated,
   };
 }
 

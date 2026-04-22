@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+import { FcGoogle } from "react-icons/fc";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,7 +35,10 @@ export default function LoginForm() {
     setMessage(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
 
       const { homePath } = await completeProvision();
@@ -67,9 +71,12 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md rounded-3xl border border-muted bg-white p-8 md:p-10 space-y-6 shadow-xl ring-1 ring-black/5">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">Member Access</p>
-        <h1 className="text-3xl font-display font-extrabold tracking-tight">Sign In</h1>
-        <p className="text-sm text-muted-foreground mt-1">Access your Impact Ledger account.</p>
+        <h1 className="text-3xl font-display font-extrabold tracking-tight">
+          Sign In
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Access your Impact Ledger account.
+        </p>
       </div>
 
       <button
@@ -77,6 +84,7 @@ export default function LoginForm() {
         disabled={pending}
         className="w-full rounded-xl border border-muted px-4 py-3 text-sm font-semibold hover:bg-muted/40 disabled:opacity-60"
       >
+
         Continue with Google
       </button>
 
@@ -110,7 +118,10 @@ export default function LoginForm() {
 
       <p className="text-sm text-muted-foreground">
         New here?{" "}
-        <Link href={`/auth/signup?next=${encodeURIComponent(nextPath)}`} className="text-accent font-semibold hover:underline">
+        <Link
+          href={`/auth/signup?next=${encodeURIComponent(nextPath)}`}
+          className="text-accent font-semibold hover:underline"
+        >
           Create account
         </Link>
       </p>

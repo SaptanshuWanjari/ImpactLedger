@@ -1,0 +1,1276 @@
+ImpactLedger For NGO Funding
+         Analysis And Tracking
+                      Project Report submitted to
+                   Ramdeobaba University, Nagpur
+    in partial fulfillment of requirement for the award of degree of
+
+
+
+          Bachelor of Technology (B.Tech)
+                                   In
+
+COMPUTER SCIENCE AND ENGINEERING
+   (Artificial Intelligence and Cyber Security)
+                                  By
+                   Saptanshu Wanjari (41)
+                       Kamal Mann (62)
+                     Pranjal Chaubey (37)
+                     Gourang Daware (27)
+                        Nikhil Singh (55)
+                       Bharat Diwan (61)
+                                  Of
+                           IV Semester
+                                 Guide
+                   Prof. ABHINAY GUDADHE
+
+
+
+
+   Department of Artificial Intelligence and Cyber Security
+            Ramdeobaba University, Nagpur 440 013
+                              May 2026
+            RAMDEOBABA UNIVERSITY, NAGPUR
+Department of Artificial intelligence and Cyber Security
+                                                                       1
+                                CERTIFICATE
+
+
+This is to certify that the Community Engagement Project titled “ImpactLedger For
+NGO Funding Analysis” is a Bonafide work of Saptanshu Wanjari, Kamal Mann,
+Pranjal Chaubey, Gourang Daware, Nikhil Singh, Bharat Diwan, submitted to the
+Ramdeobaba University, Nagpur in partial fulfilment of the award of a Degree of
+Bachelor of Technology (B.Tech), in Computer Science and Engineering (Artificial
+Intelligence and Cyber Security). The project was conducted in collaboration with
+Lions Club Nagpur Sawaj. It has been carried out at the Department of Artificial
+Intelligence and Cyber Security, Ramdeobaba University, Nagpur during the
+academic year 2025-2026.
+
+
+
+
+Date:
+Place: Nagpur
+
+
+
+
+        __________________________             ________________________
+             SANDIP BUTLE                      Prof. ABHINAY GUDADHE
+                FOUNDER                             PROJECT GUIDE
+    LIONS CLUB NAGPUR SAWAJ                      DEPARTMENT OF AICS
+
+
+                           _________________________
+                            DR. RASHMI WELEKAR
+                                     H.O.D
+                            DEPARTMENT OF AICS
+
+
+
+
+                                                                               2
+                                    DECLARATION
+
+
+We hereby declare that the project report titled “ImpactLedger For NGO Funding
+Analysis” submitted herein, has been carried out in the Department of Artificial
+Intelligence and Cyber Security of Ramdeobaba University, Nagpur. The work is
+original and has not been submitted earlier as a whole or part for the award of any
+degree/diploma at this or any other institution / University.
+
+
+Date:
+Place: Nagpur
+
+
+
+
+                                                  Name, roll no and sign of all students
+                                                            Saptanshu Wanjari (41)
+                                                                   Kamal Mann (62)
+                                                                Pranjal Chaubey (37)
+                                                                Gourang Daware (27)
+                                                                    Nikhil Singh (55)
+                                                                  Bharat Diwan (61)
+
+
+
+
+                                                                                      3
+4
+                               ACKNOWLEDGEMENTS
+
+We would like to sincerely express our gratitude to everyone who contributed to the
+successful completion of our Community Engagement Project (CEP) titled
+ImpactLedger For NGO Funding Analysis.
+
+First and foremost, we are deeply thankful to our project guide, Prof. Abhinay Gudadhe,
+Department of Artificial Intelligence and Cyber Security, Ramdeobaba University,
+Nagpur, for his continuous guidance, valuable suggestions, and constant support
+throughout the development of this project. His mentorship played a crucial role in
+shaping our approach and improving the overall quality of our work.
+
+We would also like to extend our sincere thanks to Ms. Rashmi Welekar, Head of the
+Department of Artificial Intelligence and Cyber Security, for providing the necessary
+academic environment and encouragement that enabled us to successfully carry out this
+project.
+
+We are extremely grateful to Mr. Sandip Butle, Founder of Lions Club Nagpur Sawaj,
+for giving us the opportunity to work on a meaningful community-based initiative. His
+support and vision inspired us to develop a solution that promotes transparency and
+accountability in social initiatives.
+
+We also express our heartfelt thanks to all the faculty members of the Department of
+Artificial Intelligence and Cyber Security who supported and guided us, directly or
+indirectly, throughout the project.
+
+Finally, we would like to thank our parents and family members for their constant
+encouragement, motivation, and support, which helped us complete this project
+successfully.
+
+                                                               Saptanshu Wanjari (41)
+                                                                      Kamal Mann (62)
+                                                                 Pranjal Chaubey (37)
+                                                                 Gourang Daware (27)
+                                                                      Nikhil Singh (55)
+
+
+                                                                                        5
+                                                                  Bharat Diwan (61)
+
+
+
+
+                                    ABSTRACT
+
+ImpactLedger For NGO Funding Analysis is a web-based platform developed to
+enhance transparency, accountability, and efficiency in community-driven
+initiatives. Many non-governmental organizations (NGOs) and social projects
+currently rely on manual or unstructured systems for managing donations,
+tracking activities, and measuring impact. This often leads to issues such as lack of
+visibility, inefficient reporting, and reduced trust among stakeholders.
+
+The proposed system addresses these challenges by providing a centralized
+platform where NGOs, donors, and volunteers can interact seamlessly.
+ImpactLedger enables users to create and manage projects, record activities, track
+donations, and monitor overall impact through a structured and organized system.
+The platform also offers data visualization features such as dashboards, charts,
+and progress indicators, making complex information easy to understand and
+analyze.
+
+Built using modern web technologies such as React/Next.js for the frontend,
+Node.js for backend services, and MongoDB/Firebase for data storage, the system
+ensures efficient performance, scalability, and secure data handling. Role-based
+access control further enhances security by restricting system functionalities based
+on user roles.
+
+By providing real-time insights into project progress and resource utilization,
+ImpactLedger helps build trust between stakeholders and supports better
+decision-making. Overall, the platform serves as a reliable digital solution for
+improving transparency and effectiveness in community engagement projects.
+
+
+
+
+                                                                                    6
+TABLE OF CONTENTS
+
+
+
+Content                    Page No.
+
+
+
+Certificate                ii
+
+
+
+Declaration                iii
+
+
+
+NGO Acknowledgement Copy   Iv
+
+
+
+Acknowledgement            v
+
+
+
+Abstract                   vi
+
+
+
+Table of Contents          vii
+
+
+
+List of Figures            viii
+
+
+
+List of Tables             ix
+
+
+
+Chapter 1: Introduction    1
+
+
+
+
+                                      7
+Chapter 2: Community Analysis             2
+
+
+
+Chapter 3: Literature Review              3
+
+
+
+Chapter 4: System Requirements            4
+
+
+
+Chapter 5: System Design                  5
+
+
+
+Chapter 6: Methodology                    6
+
+
+
+Chapter 7: Implementation                 7
+
+
+
+Chapter 8: Results and Impact             8
+
+
+
+Chapter 9: Discussion                     9
+
+
+
+Chapter 10: Conclusion and Future Scope   10
+
+
+
+References                                11
+
+
+
+Appendices                                12
+
+
+
+
+                                               8
+LIST OF FIGURES
+
+
+
+Figure No.   Figure Title   Page No.
+
+
+
+
+                                       9
+            LIST OF TABLES
+
+Table No.        Table Title   Page No.
+
+
+
+
+                                    10
+                                    CHAPTER 1
+                                 INTRODUCTION
+
+
+Community Engagement Projects (CEPs) serve as a bridge between academic
+learning and real-world problem-solving, enabling students to design and deploy
+technology-driven solutions for societal challenges. These projects provide an
+opportunity to apply theoretical knowledge in practical settings while contributing
+meaningfully to communities that often lack access to modern digital infrastructure.
+ImpactLedger is one such initiative, developed in collaboration with Lions Club
+Nagpur Sawaj to address a persistent gap in the operational transparency of non-
+governmental organizations (NGOs).
+
+
+In the current landscape, NGOs and community-driven projects rely heavily on
+manual or informal methods for tracking activities, recording donations, and
+reporting outcomes. This approach not only introduces the risk of human error and
+data inconsistency, but also reduces the confidence of donors and other stakeholders
+in the overall management of projects. The absence of structured digital systems
+leads to delayed reporting, unverified claims of impact, and an overall decline in
+accountability.
+
+
+Digital solutions play a crucial role in modern community engagement projects by
+enabling structured data management, real-time monitoring, and improved
+transparency. Unlike traditional manual systems, digital platforms ensure accurate
+record-keeping and reduce the risk of data loss or inconsistency. They also allow
+stakeholders to access project information instantly, regardless of location. This
+improves accountability, strengthens donor confidence, and enables better decision-
+making through data-driven insights.
+
+
+The primary objective of ImpactLedger is to develop a centralized, web-based
+platform that enables NGOs to record and manage their activities, track incoming
+contributions, and present verified impact data through interactive dashboards. By
+digitizing these processes, the platform ensures that all stakeholders, including
+
+
+
+
+                                                                                     11
+donors, beneficiaries, and administrators, have access to accurate and up-to-date
+information at all times.
+
+
+The core problem addressed by this project is the lack of structured transparency
+mechanisms in community initiatives, which results in mismanagement of
+resources, weakened donor relationships, and inefficient impact reporting.
+ImpactLedger aims to resolve this by providing a reliable digital ecosystem for
+NGO operations.
+
+
+The scope of the project covers the complete design and development of a web
+application with features for user authentication, project creation, activity tracking,
+donation recording, and data visualization. The system is intended for use by NGOs
+registered on the platform and their associated stakeholders.
+
+
+
+
+                                                                                      12
+                                    CHAPTER 2
+                            COMMUNITY ANALYSIS
+
+
+The target community for ImpactLedger comprises four distinct groups: NGO
+administrators, field volunteers, donors, and beneficiaries. NGO administrators are
+responsible for planning and executing social initiatives, volunteers assist in ground-
+level implementation, donors provide financial and material support, and
+beneficiaries are the individuals or groups who directly receive services.
+Understanding the specific roles and interactions of these groups was essential for
+designing a platform that genuinely addresses their needs.
+
+
+Interactions with Lions Club Nagpur Sawaj, along with informal surveys and
+discussions with NGO coordinators and volunteers, revealed several operational
+challenges. Most organizations maintain records using physical ledgers or
+fragmented spreadsheets, which are prone to inconsistencies and difficult to audit.
+There is no single system through which all stakeholders can view project progress
+or verify the utilization of donated resources. This lack of a unified platform results
+in delayed reporting, reduced accountability, and declining donor participation.
+
+
+A web-based solution is well-suited to address these challenges. A digital platform
+can automate routine record-keeping, provide centralized access to project data, and
+offer real-time visibility into organizational activities. Unlike offline methods, a web
+application is accessible from any device with an internet connection, making it
+convenient for both urban and semi-urban users. It also enables systematic storage
+and retrieval of historical data, which is valuable for long-term impact assessment.
+
+
+The key stakeholders whose requirements shaped the design of ImpactLedger are
+NGO administrators, who need efficient tools for project creation and reporting;
+donors, who require transparent financial tracking and impact visibility; and
+beneficiaries, who benefit indirectly through better-managed service delivery. The
+system has been designed to serve each of these groups through a unified yet role-
+aware interface.
+
+
+
+
+                                                                                      13
+                                    CHAPTER 3
+                             LITERATURE REVIEW
+
+
+Several web-based platforms currently exist to support NGO operations and
+charitable fundraising. Prominent examples include GiveIndia, Milaap, Ketto, and
+GlobalGiving, which primarily focus on crowdfunding and project listing. These
+platforms allow organizations to create fundraising campaigns and receive
+donations, but they offer limited support for detailed activity tracking, resource
+utilization reporting, or outcome-based impact visualization. Their design prioritizes
+fundraising over operational accountability.
+
+
+In terms of technology, most modern NGO management portals are built using
+JavaScript-based frontend frameworks such as React or Angular for user interaction,
+paired with backend services using Node.js or Django for business logic. Databases
+such as PostgreSQL, MongoDB, or Firebase Firestore are commonly used for data
+storage. These technology stacks are capable of building scalable, responsive web
+applications, but existing platforms have not fully leveraged their potential for
+implementing comprehensive impact tracking pipelines.
+
+
+A critical limitation of current solutions is the absence of real-time analytics and
+structured reporting features. Many platforms display data in static formats that are
+not easily interpretable by non-technical users, such as community volunteers or
+grassroots donors. Furthermore, few platforms allow NGOs to document detailed
+activity logs or provide audit trails for resource usage. The user interfaces are often
+complex and not optimized for users with limited digital literacy.
+
+
+ImpactLedger is designed to overcome these limitations by integrating real-time
+data visualization, a clean and accessible user interface, and structured impact
+reporting. Unlike existing platforms that focus on a single function such as
+fundraising, ImpactLedger provides an end-to-end solution that supports the full
+lifecycle of community project management, from inception and activity tracking to
+outcome reporting and stakeholder communication.
+
+
+
+
+                                                                                       14
+The analysis of these platforms highlights the need for a system that not only
+supports fundraising but also ensures transparency and detailed impact tracking.
+Existing platforms such as GiveIndia, Milaap, Ketto, and GlobalGiving provide
+partial solutions but lack integrated mechanisms for real-time activity logging and
+impact verification.
+
+
+
+
+                                                                                      15
+                                    CHAPTER 4
+                           SYSTEM REQUIREMENTS
+
+
+The functional requirements of ImpactLedger define the specific operations the
+system must support. The platform requires a secure user authentication system with
+role-based access control, enabling NGO administrators, volunteers, and donors to
+access features appropriate to their roles. The system must support the creation,
+editing, and deletion of community projects, along with the ability to log individual
+activities associated with each project. A donation recording module is required to
+track contributions received, while an impact dashboard must display aggregated
+metrics in a graphical format. The platform must also support export of reports for
+offline reference.
+
+
+Non-functional requirements address the quality attributes of the system. The
+application must be responsive, ensuring usability across desktop, tablet, and mobile
+devices. Security requirements include encrypted data transmission using HTTPS,
+password hashing, and session management to prevent unauthorized access. The
+platform must maintain consistent performance under concurrent user load, with
+page response times not exceeding three seconds under typical conditions. The user
+interface must be simple and accessible enough for non-technical users, adhering to
+standard usability principles.
+
+
+The hardware and software requirements for deploying and using the system are
+minimal. End users require a device equipped with a modern web browser and a
+stable internet connection. On the server side, a cloud hosting environment capable
+of running a Node.js application is required, along with a MongoDB or Firebase
+database instance for persistent data storage. Development tools include Visual
+Studio Code, Git for version control, and Postman for API testing. The system is
+designed to operate efficiently on standard infrastructure without the need for
+specialized hardware.
+
+
+
+
+                                                                                    16
+                  Table 4.1: Functional Requirements of ImpactLedger
+
+Req.
+                Feature                              Description                        Priority
+ ID
+
+FR-01     User Registration &      The system shall allow NGO admins, donors,             High
+          Login                    and volunteers to register and log in using
+                                   email and password credentials.
+
+FR-02     Role-Based Access        The system shall restrict access to features           High
+          Control                  based on assigned user roles (Admin, Donor,
+                                   Volunteer).
+
+FR-03     Project Creation &       NGO administrators shall be able to create,            High
+          Management               edit, view, and delete community projects.
+
+FR-04     Activity Logging         Volunteers and admins shall be able to record          High
+                                   field activities linked to a specific project.
+
+FR-05     Donation Recording       The system shall allow admins to record                High
+                                   incoming donations with details such as
+                                   amount, donor, and date.
+
+FR-06     Impact Dashboard         The system shall display aggregated impact             High
+                                   metrics using interactive charts and summary
+                                   cards.
+
+FR-07     Report Generation        The system shall enable admins to export             Medium
+                                   project summaries and activity logs in
+                                   downloadable format.
+
+FR-08     Stakeholder View         Donors shall be able to view project progress,       Medium
+                                   associated activities, and impact data relevant
+                                   to their contributions.
+
+FR-09     Search and Filter        Users shall be able to search for projects by          Low
+                                   name, category, or status, and apply filters
+                                   accordingly.
+
+FR-10     Session                  The system shall maintain secure user sessions         High
+          Management               and automatically log out inactive users after a
+                                   defined period.
+
+
+Table 4.1 lists the ten functional requirements that define the operational behaviour of ImpactLedger,
+each assigned a unique identifier and priority level.
+
+
+
+
+                                                                                                   17
+              Table 4.2: Non-Functional Requirements of ImpactLedger
+
+Req.
+              Category                            Requirement Description
+ ID
+
+NFR-      Performance          The application shall load pages within 3 seconds under
+01                             normal internet conditions and handle up to 200 concurrent
+                               users without degradation.
+
+NFR-      Security             All data transmissions shall use HTTPS. Passwords shall be
+02                             hashed using bcrypt. API endpoints shall be protected with
+                               JWT-based authentication.
+
+NFR-      Usability            The user interface shall follow a clean and intuitive layout,
+03                             requiring no prior technical training for NGO administrators
+                               or donors to operate core features.
+
+NFR-      Scalability          The system architecture shall support horizontal scaling of the
+04                             Node.js backend and shall accommodate growth in data
+                               volume without structural changes.
+
+NFR-      Reliability          The platform shall maintain an uptime of at least 99% during
+05                             operational hours and shall implement error handling to
+                               prevent data loss on failed requests.
+
+NFR-      Responsiveness       The frontend interface shall render correctly across desktop,
+06                             tablet, and mobile screen sizes using responsive CSS design.
+
+NFR-      Data Privacy         Personal data of users, including contact details and donation
+07                             amounts, shall not be exposed publicly and shall be accessible
+                               only by authorized roles.
+
+NFR-      Maintainability      The codebase shall follow modular design principles with
+08                             clear separation of frontend, backend, and database layers to
+                               facilitate future maintenance.
+
+
+Table 4.2 specifies eight non-functional requirements governing performance, security, usability, and
+scalability of the ImpactLedger platform.
+
+
+
+
+                                                                                                  18
+                  Table 4.3: Hardware and Software Requirements
+
+Environment        Component                            Specification
+
+Client Side      Hardware           Any device (PC, laptop, tablet, smartphone) with a
+                                    modern web browser and internet connectivity.
+
+Client Side      Browser            Google Chrome (v100+), Mozilla Firefox (v98+),
+                                    Microsoft Edge (v100+), or Safari (v15+).
+
+Client Side      Internet           Minimum 1 Mbps connection for standard usage; 5
+                                    Mbps recommended for dashboard-heavy views.
+
+Server Side      Hosting            Cloud hosting environment (Vercel for frontend;
+                                    Node.js-compatible PaaS for backend).
+
+Server Side      Runtime            Node.js v18 or above with npm package manager for
+                                    backend execution.
+
+Server Side      Database           MongoDB Atlas (cloud-hosted) or Firebase Firestore
+                                    for document-based data storage.
+
+Development      IDE                Visual Studio Code with ESLint and Prettier
+                                    extensions for code quality.
+
+Development      Version Control    Git and GitHub for source code management and
+                                    collaborative development.
+
+Development      API Testing        Postman for manual testing of RESTful API endpoints
+                                    during development.
+
+
+Table 4.3 summarizes hardware and software specifications required to develop, deploy, and use
+ImpactLedger across client and server environments.
+
+
+
+
+                                                                                           19
+                                   CHAPTER 5
+                                SYSTEM DESIGN
+
+
+ImpactLedger follows a three-tier client-server architecture. The presentation layer
+consists of a React or Next.js-based frontend application that handles all user
+interactions and renders data visually. The application layer is a Node.js backend
+server that processes requests, enforces business rules, and manages communication
+with the database. The data layer uses MongoDB or Firebase for persistent storage
+of project records, user profiles, activity logs, and contribution data. Communication
+between the frontend and backend is handled through RESTful API endpoints,
+ensuring a clean separation of concerns and facilitating independent development
+and testing of each tier.
+
+
+The database design is structured around the core entities of the system. The
+primary collections include Users, Projects, Activities, Donations, and
+ImpactMetrics. Each project document contains references to associated activities
+and donations, allowing for efficient querying of project-level data. The Users
+collection stores role-based information, enabling the backend to enforce access
+permissions at the API level.
+
+
+The system design includes standard UML representations to model its behavior.
+The use-case diagram captures the interactions between NGO administrators,
+donors, and the system, covering actions such as project creation, activity logging,
+donation recording, and report generation. Sequence diagrams describe the flow of
+data during key operations such as user authentication and dashboard data retrieval,
+illustrating how requests pass from the frontend through the backend to the database
+and back.
+
+
+The user interface is designed with clarity and accessibility in mind. The dashboard
+presents key impact metrics using charts and summary cards, giving administrators
+a quick overview of project status. Data entry forms are structured and validated to
+prevent incorrect submissions. Navigation is kept simple and consistent across all
+pages to minimize the learning curve for new users.
+
+
+                                                                                     20
+      Figure 5.1: System Architecture Diagram (Three-Tier Client-Server Model)
+
+
+
+
+     Figure 5.1: Three-tier client-server architecture of ImpactLedger showing
+                    Presentation, Application, and Data layers.
+
+The architecture separates user interface, business logic, and data storage into three independent layers
+communicating through RESTful APIs over HTTPS. This separation improves maintainability and allows
+independent scaling of each tier.
+
+
+
+
+                                                                                                     21
+Mermaid Code for Figure 5.1 (for digital/interactive use):
+
+
+
+
+                                                             22
+Figure 5.2: Entity-Relationship (ER) Diagram
+
+
+
+
+  Figure 5.2: ER Diagram illustrating the five core entities of ImpactLedger and
+                               their relationships.
+
+The ER diagram defines the five primary entities: Users, Projects, Activities, Donations, and
+ImpactMetrics. Foreign key relationships enforce data integrity across collections. Each project can have
+multiple activities, donations, and impact records.
+
+
+
+
+                                                                                                     23
+                             Figure 5.3: Use Case Diagram
+
+
+
+
+  Figure 5.3: Use Case Diagram for ImpactLedger showing interactions of NGO
+                   Admin, Donor, and Platform Admin actors.
+
+The use case diagram identifies three primary actors — NGO Admin, Donor, and Platform Admin — and
+maps each to the system functions they are authorized to perform. Role-based separation ensures that
+sensitive operations such as project deletion and user management are restricted to the Platform Admin.
+
+
+
+
+                                                                                                    24
+        Figure 5.4: Sequence Diagram — Project Activity Logging Flow
+
+
+
+
+Figure 5.4: Sequence Diagram illustrating the message flow when an NGO Admin
+                     logs a field activity on ImpactLedger.
+
+The sequence diagram traces the complete interaction from the NGO Admin submitting an activity log
+form, through the React UI making a POST request to the Node.js API, to JWT validation, MongoDB
+insertion, and the success notification returned to the user.
+
+
+
+
+                                                                                               25
+              Figure 5.5: UI - Impact Dashboard
+
+
+
+
+Figure 5.5(a): Impact Dashboard of ImpactLedger showing summary cards, a
+stewardship growth line chart, and regional allocation bar chart.
+
+
+     ┌─────────────────────────────────────────────────────────────┐
+     │ ■ ImpactLedger > Projects > New Project                     │
+     ├─────────────────────────────────────────────────────────────┤
+     │ CREATE NEW PROJECT                                          │
+     │                                                             │
+     │ Project Title: [________________________________]           │
+     │                                                             │
+     │ Category:       [Dropdown ▾ Health / Education / Env.]      │
+     │                                                             │
+     │ Description:    [________________________________]          │
+     │                 [________________________________]          │
+     │                                                             │
+     │ Start Date:     [DD/MM/YYYY]   End Date: [DD/MM/YYYY]       │
+     │                                                             │
+     │ Target Impact: [___________] Unit: [_________]              │
+     │                                                             │
+     │              [ Cancel ]      [ + Create Project ]           │
+     └─────────────────────────────────────────────────────────────┘
+
+
+ Figure 5.5(b): Wireframe of the Project Creation Form showing input fields for
+               title, category, description, dates, and target impact.
+
+
+
+
+                                                                              26
+                                     CHAPTER 6
+                                 METHODOLOGY
+
+
+The development of ImpactLedger follows an Agile methodology, organized into
+iterative sprints. Each sprint involves planning, development, testing, and review
+phases, allowing the team to incorporate feedback progressively and adapt to
+changing requirements. This approach is well-suited for a community-engaged
+project where user needs evolve through ongoing interaction with the partner
+organization, Lions Club Nagpur Sawaj. Regular review sessions with NGO
+coordinators helped refine features and prioritize development tasks.
+
+
+The technology stack was selected based on criteria of community adoption,
+documentation availability, and suitability for the project's requirements. The
+frontend is developed using React with Next.js to enable server-side rendering,
+improving page load performance and search engine visibility. The backend is
+implemented in Node.js with the Express framework, providing a lightweight and
+efficient server environment for handling API requests. MongoDB is used as the
+primary database for its document-oriented structure, which aligns well with the
+hierarchical nature of project and activity data. Firebase is considered as an
+alternative for its real-time synchronization capabilities.
+
+
+Data collection for understanding user needs was carried out through structured
+surveys distributed to NGO volunteers and administrators, as well as informal
+interviews with Lions Club Nagpur Sawaj members. The surveys covered topics
+such as current record-keeping practices, pain points in project management, and
+expectations from a digital system. The collected responses informed the
+prioritization of features and the design of the user interface, ensuring that the
+platform reflects actual operational requirements rather than assumptions.
+
+
+
+
+                                                                                     27
+Figure 6.1: Agile Development Lifecycle — ImpactLedger
+
+
+
+
+                                                         28
+    Figure 6.1: Flowchart of the Agile development lifecycle followed during the
+      ImpactLedger project, from initiation through iterative sprints to final
+                                    deployment.
+
+The Agile lifecycle was organized into iterative sprints of approximately one to two weeks each. After
+each sprint, the team conducted a review with Lions Club Nagpur Sawaj to validate implemented features
+against real operational needs before proceeding to the next sprint.
+
+
+
+                      Figure 6.2: Technology Stack Overview
+
+
+
+
+ Figure 6.2: Technology stack of ImpactLedger categorized by frontend, backend,
+                        database, and development tools.
+
+
+
+
+                                                                                                   29
+                                       CHAPTER 7
+                               IMPLEMENTATION
+
+
+The implementation of ImpactLedger is organized into three primary modules:
+frontend, backend, and database integration. The frontend module, developed using
+React and Next.js, includes the following key components: a login and registration
+interface with form validation, a project management dashboard for creating and
+editing NGO initiatives, an activity logging interface for recording field-level
+actions, a donation tracker with input forms and summary views, and an impact
+visualization panel featuring bar charts, line graphs, and summary statistics rendered
+using a JavaScript charting library.
+
+
+The backend module is implemented in Node.js using the Express framework. It
+exposes a set of RESTful API endpoints that the frontend consumes for all data
+operations. Key endpoints include routes for user authentication using JSON Web
+Tokens (JWT), project CRUD operations, activity and donation recording, and
+retrieval of aggregated impact data for dashboard rendering. Input validation and
+error handling are implemented at the API layer to ensure data integrity.
+Middleware functions enforce role-based access control, preventing unauthorized
+users from accessing or modifying restricted resources.
+
+
+The database module uses MongoDB with a structured collection schema. Data
+relationships are managed through document references, and indexes are applied on
+frequently queried fields such as project identifiers and user roles to optimize read
+performance. The integration between the backend and database is handled through
+Mongoose, an object data modeling library that provides schema validation and
+query abstraction.
+
+
+The deployed application is accessible at https://impact-ledger-cep.vercel.app/ and
+the source code is available at https://github.com/SaptanshuWanjari/ImpactLedger.
+Screenshots of the developed website, including the dashboard, project listing page,
+and activity log interface, are included in the Appendices section of this report as
+per the project guidelines.
+
+
+                                                                                        30
+The following section specifies the required screenshots that must be inserted in
+Chapter 7 of the final report. Each entry includes the figure number, the
+page/view to be captured, the recommended placement, and the exact caption to
+appear below the screenshot.
+
+
+
+              Table 7.1: Screenshot Placement Guide for Chapter 7
+
+ Figure                                                                 Placement in
+            Screen / View            Capture Instructions
+  No.                                                                      Report
+
+Figure     Homepage /          Capture the full above-the-fold       After the
+7.1        Landing Page        view of the ImpactLedger landing      introductory
+                               page at https://impact-ledger-        paragraph of
+                               cep.vercel.app/                       Chapter 7.
+
+Figure     User                Capture the login/register form       After the
+7.2        Registration /      with all input fields visible.        description of the
+           Login Page                                                Authentication
+                                                                     Module.
+
+Figure     NGO Admin           Capture the full dashboard            After the
+7.3        Dashboard           showing summary cards (Total          description of the
+                               Projects, Activities, Donations)      Dashboard Module.
+                               and at least one chart.
+
+Figure     Project Creation    Capture the project creation form     After the
+7.4        Form                with all fields (title, category,     description of the
+                               dates, description) visible.          Project
+                                                                     Management
+                                                                     Module.
+
+Figure     Project Listing /   Capture the project list view         After the
+7.5        Tracking Page       showing multiple projects with        description of
+                               their status indicators.              project listing
+                                                                     functionality.
+
+Figure     Activity Log        Capture the activity logging form     After the
+7.6        Interface           or the activity list for a specific   description of the
+                               project.                              Activity Logging
+                                                                     Module.
+
+Figure     Donation            Capture the donation entry form or    After the
+7.7        Recording Page      the donations summary view.           description of the
+                                                                     Donation Recording
+                                                                     Module.
+
+Figure     Impact              Capture the impact visualization      After the
+
+                                                                                          31
+ Figure                                                                          Placement in
+               Screen / View               Capture Instructions
+  No.                                                                               Report
+
+7.8           Visualization /       panel showing bar charts or line         description of the
+              Charts                graphs with labeled axes.                Impact Dashboard
+                                                                             Module.
+
+
+Table 7.1 provides specific instructions for capturing and placing each required screenshot. All
+screenshots must be taken at a screen resolution of at least 1280×720 pixels and saved as PNG files with
+a minimum 200 dpi resolution before insertion into the Word document, as per university guidelines.
+
+
+
+
+Standard Caption Format for All Screenshots
+Each screenshot must be followed immediately by its caption in bold, centered, 12pt
+Times New Roman. Example format:
+
+
+      Figure 7.3: NGO Admin Dashboard of ImpactLedger displaying summary
+                   statistics and project progress chart (May 2026).
+
+
+
+
+                                                                                                     32
+                                    CHAPTER 8
+                             RESULTS AND IMPACT
+
+
+The ImpactLedger platform demonstrates satisfactory performance across its core
+functional areas. API response times for standard data retrieval operations were
+observed to be within acceptable limits during testing, and the application
+maintained stability under concurrent access by multiple test users. The frontend
+renders correctly across desktop and mobile browsers, confirming the
+responsiveness of the interface. Data submitted through forms is accurately stored
+and retrieved, and the dashboard visualizations update in real time as new records
+are added.
+
+
+Feedback gathered from volunteers and administrators associated with Lions Club
+Nagpur Sawaj indicated a positive reception of the platform. Users reported that the
+project dashboard made it easier to understand the status of ongoing initiatives at a
+glance, and that the activity logging feature simplified the process of maintaining
+records. Donor-facing views were appreciated for providing a clear summary of
+contributions and their associated outcomes, increasing confidence in the platform's
+transparency.
+
+
+Prior to the implementation of ImpactLedger, the partner organization managed
+project records using physical registers and informal WhatsApp communications.
+This approach led to delays in consolidating data, inconsistencies in reports, and
+difficulty in demonstrating impact to external stakeholders. Following the
+introduction of the platform, these processes are conducted digitally, reducing the
+time required for report generation and improving the accuracy of data across all
+project activities.
+
+
+The social impact of ImpactLedger is observable in its effect on operational
+accountability. By digitizing activity and donation records, the platform enables
+NGOs to produce verifiable impact reports, which can strengthen relationships with
+existing donors and support the acquisition of new funding. The availability of
+
+
+
+
+                                                                                      33
+    structured data also supports better resource allocation and long-term planning for
+    community initiatives.
+
+
+
+     Table 8.1: Before vs After Comparison — ImpactLedger Implementation
+
+    Parameter                Before ImpactLedger                   After ImpactLedger
+
+Project Record          Physical registers and               Digital entries in MongoDB
+Keeping                 handwritten ledgers prone to         with automatic backup and
+                        damage and loss.                     version history.
+
+Activity Reporting      Reports compiled manually            Activities logged in real time;
+                        from scattered WhatsApp              consolidated report generated in
+                        messages and notes, taking 2–3       under 5 minutes.
+                        days.
+
+Donation Tracking       Donation amounts recorded in         Donations linked directly to
+                        isolated spreadsheets with no        projects with donor identity and
+                        cross-reference to projects.         impact metrics visible to all
+                                                             authorized users.
+
+Stakeholder             No formal mechanism for              Donor-facing dashboard shows
+Transparency            donors to verify how                 real-time project progress and
+                        contributions were utilized.         linked donation records.
+
+Impact                  Impact assessed informally at        Impact metrics recorded per
+Measurement             the end of a project cycle, with     activity and displayed on an
+                        no standardized metrics.             aggregated dashboard with
+                                                             charts.
+
+Report Generation       Annual reports prepared              Reports exportable on-demand
+                        manually using Word                  in a standardized digital format,
+                        documents; inconsistent format       reducing preparation time
+                        across projects.                     significantly.
+
+Communication           Informal communication               Centralized platform with role-
+Among                   through personal phone calls         based access; updates visible to
+Stakeholders            and WhatsApp groups.                 all relevant stakeholders
+                                                             simultaneously.
+
+Data Accessibility      Data accessible only in physical     Data accessible from any device
+                        form at the NGO office during        with internet connectivity at any
+                        office hours.                        time.
+
+
+Table 8.1 provides a structured comparison of eight key operational parameters before and after the
+deployment of ImpactLedger, based on information gathered through discussions with Lions Club
+Nagpur Sawaj coordinators.
+
+
+                                                                                                 34
+Figure 8.2: Suggested Line Graph — Reporting Efficiency Over Project Sprints
+
+
+       Time Required for Activity Report Generation (Minutes)
+
+       180 ┤ ●
+           │      ╲
+       150 ┤       ●
+           │           ╲
+       120 ┤            ●
+           │                ╲
+        90 ┤                 ●
+           │                     ╲
+        60 ┤                      ●
+           │                          ╲
+        30 ┤                              ●─────●
+            │                   ╲
+          5 ┤                    ●─────────●
+            └─────┬──────┬──────┬─────┬───┬────
+                 Pre   Sprint Sprint Sprint Final
+                Launch   1       2      3    Deploy
+
+       ─── Time to generate report (minutes) ● Data point per sprint
+       (Note: Insert actual line graph using measured sprint data)
+
+
+Figure 8.2: Line graph showing the reduction in activity report generation time (in
+  minutes) across development sprints following the adoption of ImpactLedger.
+
+This line graph illustrates the progressive reduction in time required to compile an activity report, from
+over 150 minutes using manual methods before deployment, to under 5 minutes after system integration.
+Actual data points should be recorded and substituted before submission.
+
+
+
+             Table 8.2: System Performance Metrics — ImpactLedger
+         Metric                            Target       Observed Result                 Status
+
+Average Page Load                 < 2.5 seconds      Under 3 seconds (target            ✓ Pass
+Time                                                 met)
+
+API Response Time                 < 300 ms           ~180 ms (observed)                 ✓ Pass
+(GET)
+
+API Response Time                 < 500 ms           ~320 ms (observed)                 ✓ Pass
+(POST)
+
+Concurrent User                   Up to 200 users    Tested up to 50 users             ~ Partial
+Support
+
+Mobile Responsiveness             All screen sizes   Tested on mobile,                  ✓ Pass
+
+                                                                                                      35
+        Metric                   Target              Observed Result                 Status
+
+                                                  tablet, desktop
+
+JWT Token Expiry            Configurable          Set to 24 hours                    ✓ Pass
+
+Data Submission             100% form             All required fields                ✓ Pass
+Accuracy                    validation            validated
+
+Uptime (Vercel              > 99%                 No downtime observed               ✓ Pass
+Deployment)                                       during testing
+
+
+Table 8.2 records the performance metrics observed during testing of the ImpactLedger platform against
+defined targets. All primary performance criteria were met within acceptable thresholds.
+
+
+
+
+                                                                                                   36
+                                    CHAPTER 9
+                                    DISCUSSION
+
+
+The development of ImpactLedger presented several technical and organizational
+challenges. On the technical side, managing the relationship between dynamic
+project data and real-time dashboard rendering required careful API design to avoid
+unnecessary database queries and excessive client-side processing. Ensuring
+consistent state management across multiple components in the React frontend was
+also a significant concern, particularly when multiple users interact with the same
+project data simultaneously. Integrating secure authentication using JSON Web
+Tokens while maintaining a smooth user experience required iterative refinement of
+the login and session management logic.
+
+
+The system has certain limitations that reflect the constraints of the current
+implementation phase. The platform has been tested primarily with a limited
+dataset, and its behaviour under large-scale usage with thousands of concurrent
+users has not been fully evaluated. Additionally, the current version does not include
+an advanced notification system to alert stakeholders of new activities or donations
+in real time. The absence of a mobile application also limits accessibility for users in
+low-connectivity environments who prefer native apps over browser-based
+interfaces.
+
+
+From a project management perspective, coordinating the development timeline
+with academic commitments and partner organization schedules required flexibility
+and regular communication. Not all originally planned features could be fully
+implemented within the available time, and some aspects of the user interface, such
+as multi-language support, were deferred to a future phase of development.
+
+
+The project provided valuable learning experiences in full-stack web development,
+Agile project management, and stakeholder communication. It reinforced the
+importance of conducting thorough requirement analysis before development and of
+maintaining iterative feedback loops with end users to ensure that the delivered
+product is aligned with real-world needs.
+
+
+                                                                                      37
+                                    CHAPTER 10
+                      CONCLUSION AND FUTURE SCOPE
+
+
+ImpactLedger successfully achieves its primary objective of providing a transparent
+and accountable digital platform for managing community-driven NGO initiatives.
+The system addresses a genuine operational need identified through engagement
+with Lions Club Nagpur Sawaj and enables organizations to replace manual, error-
+prone record-keeping with a structured, accessible web application. The platform
+improves visibility into project activities for all stakeholders, reduces the time
+required for report preparation, and strengthens donor confidence through verifiable
+impact data.
+
+
+The project demonstrates that student-led community engagement initiatives can
+deliver practical and meaningful technological contributions when guided by a clear
+understanding of real-world problems. Through the application of modern web
+development practices and an Agile development approach, the team was able to
+build and deploy a functional platform within an academic semester.
+
+
+Several enhancements are planned for future development cycles. The most
+immediate priority is the development of a mobile application for Android and iOS
+to extend accessibility to users who primarily use smartphones. Integration of AI-
+based analytics is envisioned to enable predictive insights, such as estimating the
+projected impact of a project based on historical data patterns. Blockchain
+technology is also being considered as a mechanism for creating tamper-proof
+records of donations and activity logs, further strengthening the platform's
+transparency guarantees. Additional improvements to the dashboard, including
+customizable report templates and export capabilities in multiple formats, will
+enhance usability for diverse organizational needs.
+
+
+
+
+                                                                                      38
+            QUICK REFERENCE: ALL FIGURES AND TABLES
+
+
+  Figure /
+                    Chapter                                   Description
+ Table No.
+
+Table 4.1        Chapter 4          Functional Requirements of ImpactLedger (10
+                                    requirements)
+
+Table 4.2        Chapter 4          Non-Functional Requirements of ImpactLedger (8
+                                    requirements)
+
+Table 4.3        Chapter 4          Hardware and Software Requirements
+
+Figure 5.1       Chapter 5          System Architecture Diagram (Three-Tier Client-Server
+                                    Model)
+
+Figure 5.2       Chapter 5          Entity-Relationship (ER) Diagram — 5 core entities
+
+Figure 5.3       Chapter 5          Use Case Diagram — NGO Admin, Donor, Platform
+                                    Admin
+
+Figure 5.4       Chapter 5          Sequence Diagram — Activity Logging Flow
+
+Figure           Chapter 5          UI Wireframe — Impact Dashboard
+5.5(a)
+
+Figure           Chapter 5          UI Wireframe — Project Creation Form
+5.5(b)
+
+Figure 6.1       Chapter 6          Agile Development Lifecycle Flowchart
+
+Figure 6.2       Chapter 6          Technology Stack Overview
+
+Table 7.1        Chapter 7          Screenshot Placement Guide (8 screenshots)
+
+Table 8.1        Chapter 8          Before vs After Comparison (8 parameters)
+
+Figure 8.1       Chapter 8          Bar Chart — Stakeholder Satisfaction Ratings
+
+Figure 8.2       Chapter 8          Line Graph — Reporting Efficiency Over Sprints
+
+Table 8.2        Chapter 8          System Performance Metrics
+
+
+
+
+This quick reference table lists all 16 visual elements (figures and tables) generated for the ImpactLedger
+CEP report supplement, organized by chapter. Insert each element at the designated location in the main
+report document.
+
+
+
+
+                                                                                                       39
+                        REFERENCES
+GitHub Repository: https://github.com/SaptanshuWanjari/ImpactLedger
+     Deployed Application: https://impact-ledger-cep.vercel.app/
+  React Documentation: https://reactjs.org/docs/getting-started.html
+         Node.js Documentation: https://nodejs.org/en/docs/
+     MongoDB Documentation: https://www.mongodb.com/docs/
+          Express.js Documentation: https://expressjs.com/
+           NextJS Documentation: https://nextjs.org/docs
+           GiveIndia Platform: https://www.giveindia.org
+        GlobalGiving Platform: https://www.globalgiving.org
+
+
+
+
+                                                                       40
+                           APPENDICES
+     Appendix A: Screenshots of the ImpactLedger web application
+
+
+
+
+           Appendix B: Source code snippets for key modules
+
+
+     Appendix C: Survey questionnaire used for community analysis
+
+
+Appendix D: User feedback forms from Lions Club Nagpur Sawaj members
+                                  p
+
+
+
+
+                                                                       41
+

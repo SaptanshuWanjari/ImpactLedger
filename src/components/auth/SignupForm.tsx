@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+import { FcGoogle } from "react-icons/fc";
 export default function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +49,9 @@ export default function SignupForm() {
       if (error) throw error;
 
       if (!data.session) {
-        setMessage("Account created. If email confirmation is enabled, verify your email then sign in.");
+        setMessage(
+          "Account created. If email confirmation is enabled, verify your email then sign in.",
+        );
         return;
       }
 
@@ -82,9 +85,15 @@ export default function SignupForm() {
   return (
     <div className="w-full max-w-md rounded-3xl border border-muted bg-white p-8 md:p-10 space-y-6 shadow-xl ring-1 ring-black/5">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">Secure Onboarding</p>
-        <h1 className="text-3xl font-display font-extrabold tracking-tight">Create Account</h1>
-        <p className="text-sm text-muted-foreground mt-1">Sign up with Google or email/password.</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">
+          Secure Onboarding
+        </p>
+        <h1 className="text-3xl font-display font-extrabold tracking-tight">
+          Create Account
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Sign up with Google or email/password.
+        </p>
       </div>
 
       <button
@@ -134,7 +143,10 @@ export default function SignupForm() {
 
       <p className="text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href={`/auth/login?next=${encodeURIComponent(nextPath)}`} className="text-accent font-semibold hover:underline">
+        <Link
+          href={`/auth/login?next=${encodeURIComponent(nextPath)}`}
+          className="text-accent font-semibold hover:underline"
+        >
           Sign in
         </Link>
       </p>

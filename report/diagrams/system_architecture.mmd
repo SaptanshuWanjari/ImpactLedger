@@ -1,0 +1,37 @@
+flowchart TB
+  U[User Browser]
+  M[middleware.ts\nsession refresh]
+
+  subgraph App[Next.js App Router]
+    P[Public + Role Pages]
+    API[Route Handlers\nsrc/app/api/**/route.ts]
+  end
+
+  subgraph S[Server Modules]
+    AUTH[src/lib/server/auth.ts]
+    DATA[src/lib/server/data.ts]
+    PAY[src/lib/server/razorpay.ts]
+    INV[src/lib/server/invoice.ts]
+    PDF[src/lib/server/pdf.ts]
+  end
+
+  subgraph DB[Supabase PostgreSQL]
+    TABLES[schema.sql tables + reporting views]
+  end
+
+  RP[Razorpay API]
+  SMTP[SMTP Provider]
+
+  U --> M --> P
+  P --> API
+  API --> AUTH
+  API --> DATA
+  API --> PAY
+  API --> INV
+  INV --> PDF
+  AUTH --> TABLES
+  DATA --> TABLES
+  PAY --> TABLES
+  INV --> TABLES
+  PAY --> RP
+  INV --> SMTP

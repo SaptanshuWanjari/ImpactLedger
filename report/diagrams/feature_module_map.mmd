@@ -1,0 +1,29 @@
+flowchart TB
+  F_AUTH[Auth + RBAC]
+  F_CAMP[Campaign Discovery]
+  F_PAY[Donation + Payment]
+  F_DONOR[Donor Portal]
+  F_VOL[Volunteer Portal]
+  F_ADMIN[Admin Operations]
+  F_TRANS[Transparency + Overview]
+
+  AUTH[src/lib/server/auth.ts]
+  DATA[src/lib/server/data.ts]
+  CHECKOUT[src/app/api/payments/checkout-session/route.ts]
+  WEBHOOK[src/app/api/payments/razorpay/webhook/route.ts]
+  INVOICE[src/lib/server/invoice.ts]
+  DB[supabase/schema.sql]
+
+  F_AUTH --> AUTH
+  F_CAMP --> DATA
+  F_PAY --> CHECKOUT
+  F_PAY --> WEBHOOK
+  F_PAY --> INVOICE
+  F_DONOR --> DATA
+  F_VOL --> DATA
+  F_ADMIN --> DATA
+  F_TRANS --> DATA
+  AUTH --> DB
+  DATA --> DB
+  CHECKOUT --> DB
+  WEBHOOK --> DB

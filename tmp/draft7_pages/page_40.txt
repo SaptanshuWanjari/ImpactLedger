@@ -1,0 +1,16 @@
+                        REFERENCES
+GitHub Repository: https://github.com/SaptanshuWanjari/ImpactLedger
+     Deployed Application: https://impact-ledger-cep.vercel.app/
+  React Documentation: https://reactjs.org/docs/getting-started.html
+         Node.js Documentation: https://nodejs.org/en/docs/
+     MongoDB Documentation: https://www.mongodb.com/docs/
+          Express.js Documentation: https://expressjs.com/
+           NextJS Documentation: https://nextjs.org/docs
+           GiveIndia Platform: https://www.giveindia.org
+        GlobalGiving Platform: https://www.globalgiving.org
+
+
+
+
+                                                                       40
+

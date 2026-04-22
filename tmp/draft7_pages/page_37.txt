@@ -1,0 +1,41 @@
+                                    CHAPTER 9
+                                    DISCUSSION
+
+
+The development of ImpactLedger presented several technical and organizational
+challenges. On the technical side, managing the relationship between dynamic
+project data and real-time dashboard rendering required careful API design to avoid
+unnecessary database queries and excessive client-side processing. Ensuring
+consistent state management across multiple components in the React frontend was
+also a significant concern, particularly when multiple users interact with the same
+project data simultaneously. Integrating secure authentication using JSON Web
+Tokens while maintaining a smooth user experience required iterative refinement of
+the login and session management logic.
+
+
+The system has certain limitations that reflect the constraints of the current
+implementation phase. The platform has been tested primarily with a limited
+dataset, and its behaviour under large-scale usage with thousands of concurrent
+users has not been fully evaluated. Additionally, the current version does not include
+an advanced notification system to alert stakeholders of new activities or donations
+in real time. The absence of a mobile application also limits accessibility for users in
+low-connectivity environments who prefer native apps over browser-based
+interfaces.
+
+
+From a project management perspective, coordinating the development timeline
+with academic commitments and partner organization schedules required flexibility
+and regular communication. Not all originally planned features could be fully
+implemented within the available time, and some aspects of the user interface, such
+as multi-language support, were deferred to a future phase of development.
+
+
+The project provided valuable learning experiences in full-stack web development,
+Agile project management, and stakeholder communication. It reinforced the
+importance of conducting thorough requirement analysis before development and of
+maintaining iterative feedback loops with end users to ensure that the delivered
+product is aligned with real-world needs.
+
+
+                                                                                      37
+

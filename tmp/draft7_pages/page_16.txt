@@ -1,0 +1,39 @@
+                                    CHAPTER 4
+                           SYSTEM REQUIREMENTS
+
+
+The functional requirements of ImpactLedger define the specific operations the
+system must support. The platform requires a secure user authentication system with
+role-based access control, enabling NGO administrators, volunteers, and donors to
+access features appropriate to their roles. The system must support the creation,
+editing, and deletion of community projects, along with the ability to log individual
+activities associated with each project. A donation recording module is required to
+track contributions received, while an impact dashboard must display aggregated
+metrics in a graphical format. The platform must also support export of reports for
+offline reference.
+
+
+Non-functional requirements address the quality attributes of the system. The
+application must be responsive, ensuring usability across desktop, tablet, and mobile
+devices. Security requirements include encrypted data transmission using HTTPS,
+password hashing, and session management to prevent unauthorized access. The
+platform must maintain consistent performance under concurrent user load, with
+page response times not exceeding three seconds under typical conditions. The user
+interface must be simple and accessible enough for non-technical users, adhering to
+standard usability principles.
+
+
+The hardware and software requirements for deploying and using the system are
+minimal. End users require a device equipped with a modern web browser and a
+stable internet connection. On the server side, a cloud hosting environment capable
+of running a Node.js application is required, along with a MongoDB or Firebase
+database instance for persistent data storage. Development tools include Visual
+Studio Code, Git for version control, and Postman for API testing. The system is
+designed to operate efficiently on standard infrastructure without the need for
+specialized hardware.
+
+
+
+
+                                                                                    16
+

@@ -1,0 +1,46 @@
+              Table 4.2: Non-Functional Requirements of ImpactLedger
+
+Req.
+              Category                            Requirement Description
+ ID
+
+NFR-      Performance          The application shall load pages within 3 seconds under
+01                             normal internet conditions and handle up to 200 concurrent
+                               users without degradation.
+
+NFR-      Security             All data transmissions shall use HTTPS. Passwords shall be
+02                             hashed using bcrypt. API endpoints shall be protected with
+                               JWT-based authentication.
+
+NFR-      Usability            The user interface shall follow a clean and intuitive layout,
+03                             requiring no prior technical training for NGO administrators
+                               or donors to operate core features.
+
+NFR-      Scalability          The system architecture shall support horizontal scaling of the
+04                             Node.js backend and shall accommodate growth in data
+                               volume without structural changes.
+
+NFR-      Reliability          The platform shall maintain an uptime of at least 99% during
+05                             operational hours and shall implement error handling to
+                               prevent data loss on failed requests.
+
+NFR-      Responsiveness       The frontend interface shall render correctly across desktop,
+06                             tablet, and mobile screen sizes using responsive CSS design.
+
+NFR-      Data Privacy         Personal data of users, including contact details and donation
+07                             amounts, shall not be exposed publicly and shall be accessible
+                               only by authorized roles.
+
+NFR-      Maintainability      The codebase shall follow modular design principles with
+08                             clear separation of frontend, backend, and database layers to
+                               facilitate future maintenance.
+
+
+Table 4.2 specifies eight non-functional requirements governing performance, security, usability, and
+scalability of the ImpactLedger platform.
+
+
+
+
+                                                                                                  18
+

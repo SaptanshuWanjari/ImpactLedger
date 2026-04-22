@@ -1,0 +1,28 @@
+flowchart TB
+  subgraph Frontend
+    FE1[Next.js App Router]
+    FE2[React 19 + Tailwind]
+  end
+
+  subgraph Backend
+    BE1[Next.js Route Handlers]
+    BE2[Server Modules auth data payments invoice pdf]
+  end
+
+  subgraph Data
+    DB1[Supabase PostgreSQL]
+    DB2[RLS + reporting views]
+  end
+
+  subgraph Integrations
+    IN1[Razorpay]
+    IN2[SMTP]
+  end
+
+  FE1 --> BE1
+  FE2 --> BE1
+  BE1 --> BE2
+  BE2 --> DB1
+  DB1 --> DB2
+  BE2 --> IN1
+  BE2 --> IN2

@@ -1,0 +1,154 @@
+erDiagram
+
+  TENANTS {
+    uuid id PK
+    text slug
+    text name
+    text country_code
+    text timezone
+  }
+
+  CAMPAIGNS {
+    uuid id PK
+    uuid tenant_id FK
+    text title
+    text category
+    numeric goal_amount
+    text status
+  }
+
+  DONORS {
+    uuid id PK
+    uuid tenant_id FK
+    text full_name
+    text email
+  }
+
+  DONATIONS {
+    uuid id PK
+    uuid tenant_id FK
+    uuid donor_id FK
+    uuid campaign_id FK
+    numeric amount
+    text status
+  }
+
+  DONATION_LEDGER {
+    uuid id PK
+    uuid tenant_id FK
+    uuid donation_id FK
+    uuid donor_id FK
+    uuid campaign_id FK
+    numeric amount
+    text event_type
+  }
+
+  ALLOCATION_LEDGER {
+    uuid id PK
+    uuid tenant_id FK
+    uuid donation_id FK
+    uuid campaign_id FK
+    numeric amount
+    text event_type
+  }
+
+  EXPENSES {
+    uuid id PK
+    uuid tenant_id FK
+    uuid campaign_id FK
+    uuid allocation_id FK
+    numeric amount
+    text status
+  }
+
+  CAMPAIGN_UPDATES {
+    uuid id PK
+    uuid tenant_id FK
+    uuid campaign_id FK
+    text title
+  }
+
+  VOLUNTEER_PROFILES {
+    uuid id PK
+    uuid tenant_id FK
+    text full_name
+    text email
+  }
+
+  VOLUNTEER_ASSIGNMENTS {
+    uuid id PK
+    uuid tenant_id FK
+    uuid campaign_id FK
+    uuid volunteer_id FK
+    text title
+    text status
+  }
+
+  FIELD_REPORTS {
+    uuid id PK
+    uuid tenant_id FK
+    uuid assignment_id FK
+    uuid volunteer_id FK
+    text status
+  }
+
+  AUDIT_LOGS {
+    uuid id PK
+    uuid tenant_id FK
+    text action
+    text target_type
+  }
+
+  PAYMENT_WEBHOOK_EVENTS {
+    uuid id PK
+    uuid tenant_id FK
+    text provider
+    text event_type
+  }
+
+  STRIPE_WEBHOOK_EVENTS {
+    uuid id PK
+    uuid tenant_id FK
+    text event_type
+  }
+
+  TENANT_MEMBERSHIPS {
+    uuid id PK
+    uuid tenant_id FK
+    uuid user_id FK
+    text role
+  }
+
+  %% Relationships
+
+  TENANTS ||--o{ CAMPAIGNS : has
+  TENANTS ||--o{ DONORS : has
+  TENANTS ||--o{ DONATIONS : has
+  TENANTS ||--o{ DONATION_LEDGER : logs
+  TENANTS ||--o{ ALLOCATION_LEDGER : logs
+  TENANTS ||--o{ EXPENSES : tracks
+  TENANTS ||--o{ VOLUNTEER_PROFILES : has
+  TENANTS ||--o{ VOLUNTEER_ASSIGNMENTS : manages
+  TENANTS ||--o{ FIELD_REPORTS : collects
+  TENANTS ||--o{ AUDIT_LOGS : audits
+  TENANTS ||--o{ PAYMENT_WEBHOOK_EVENTS : receives
+  TENANTS ||--o{ STRIPE_WEBHOOK_EVENTS : receives
+  TENANTS ||--o{ TENANT_MEMBERSHIPS : has
+
+  CAMPAIGNS ||--o{ DONATIONS : receives
+  CAMPAIGNS ||--o{ DONATION_LEDGER : logs
+  CAMPAIGNS ||--o{ ALLOCATION_LEDGER : allocates
+  CAMPAIGNS ||--o{ EXPENSES : spends
+  CAMPAIGNS ||--o{ CAMPAIGN_UPDATES : updates
+  CAMPAIGNS ||--o{ VOLUNTEER_ASSIGNMENTS : assigns
+
+  DONORS ||--o{ DONATIONS : makes
+  DONORS ||--o{ DONATION_LEDGER : tracked_in
+
+  DONATIONS ||--o{ DONATION_LEDGER : recorded_in
+  DONATIONS ||--o{ ALLOCATION_LEDGER : allocated_to
+
+  ALLOCATION_LEDGER ||--o{ EXPENSES : funds
+
+  VOLUNTEER_PROFILES ||--o{ VOLUNTEER_ASSIGNMENTS : assigned
+  VOLUNTEER_ASSIGNMENTS ||--o{ FIELD_REPORTS : produces

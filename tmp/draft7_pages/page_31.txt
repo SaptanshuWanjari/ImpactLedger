@@ -1,0 +1,53 @@
+The following section specifies the required screenshots that must be inserted in
+Chapter 7 of the final report. Each entry includes the figure number, the
+page/view to be captured, the recommended placement, and the exact caption to
+appear below the screenshot.
+
+
+
+              Table 7.1: Screenshot Placement Guide for Chapter 7
+
+ Figure                                                                 Placement in
+            Screen / View            Capture Instructions
+  No.                                                                      Report
+
+Figure     Homepage /          Capture the full above-the-fold       After the
+7.1        Landing Page        view of the ImpactLedger landing      introductory
+                               page at https://impact-ledger-        paragraph of
+                               cep.vercel.app/                       Chapter 7.
+
+Figure     User                Capture the login/register form       After the
+7.2        Registration /      with all input fields visible.        description of the
+           Login Page                                                Authentication
+                                                                     Module.
+
+Figure     NGO Admin           Capture the full dashboard            After the
+7.3        Dashboard           showing summary cards (Total          description of the
+                               Projects, Activities, Donations)      Dashboard Module.
+                               and at least one chart.
+
+Figure     Project Creation    Capture the project creation form     After the
+7.4        Form                with all fields (title, category,     description of the
+                               dates, description) visible.          Project
+                                                                     Management
+                                                                     Module.
+
+Figure     Project Listing /   Capture the project list view         After the
+7.5        Tracking Page       showing multiple projects with        description of
+                               their status indicators.              project listing
+                                                                     functionality.
+
+Figure     Activity Log        Capture the activity logging form     After the
+7.6        Interface           or the activity list for a specific   description of the
+                               project.                              Activity Logging
+                                                                     Module.
+
+Figure     Donation            Capture the donation entry form or    After the
+7.7        Recording Page      the donations summary view.           description of the
+                                                                     Donation Recording
+                                                                     Module.
+
+Figure     Impact              Capture the impact visualization      After the
+
+                                                                                          31
+

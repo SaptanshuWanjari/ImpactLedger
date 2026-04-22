@@ -1,0 +1,53 @@
+                  Table 4.1: Functional Requirements of ImpactLedger
+
+Req.
+                Feature                              Description                        Priority
+ ID
+
+FR-01     User Registration &      The system shall allow NGO admins, donors,             High
+          Login                    and volunteers to register and log in using
+                                   email and password credentials.
+
+FR-02     Role-Based Access        The system shall restrict access to features           High
+          Control                  based on assigned user roles (Admin, Donor,
+                                   Volunteer).
+
+FR-03     Project Creation &       NGO administrators shall be able to create,            High
+          Management               edit, view, and delete community projects.
+
+FR-04     Activity Logging         Volunteers and admins shall be able to record          High
+                                   field activities linked to a specific project.
+
+FR-05     Donation Recording       The system shall allow admins to record                High
+                                   incoming donations with details such as
+                                   amount, donor, and date.
+
+FR-06     Impact Dashboard         The system shall display aggregated impact             High
+                                   metrics using interactive charts and summary
+                                   cards.
+
+FR-07     Report Generation        The system shall enable admins to export             Medium
+                                   project summaries and activity logs in
+                                   downloadable format.
+
+FR-08     Stakeholder View         Donors shall be able to view project progress,       Medium
+                                   associated activities, and impact data relevant
+                                   to their contributions.
+
+FR-09     Search and Filter        Users shall be able to search for projects by          Low
+                                   name, category, or status, and apply filters
+                                   accordingly.
+
+FR-10     Session                  The system shall maintain secure user sessions         High
+          Management               and automatically log out inactive users after a
+                                   defined period.
+
+
+Table 4.1 lists the ten functional requirements that define the operational behaviour of ImpactLedger,
+each assigned a unique identifier and priority level.
+
+
+
+
+                                                                                                   17
+

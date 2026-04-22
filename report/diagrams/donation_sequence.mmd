@@ -1,0 +1,22 @@
+sequenceDiagram
+  actor User
+  participant FE as Donate Page
+  participant CS as /api/payments/checkout-session
+  participant RP as Razorpay
+  participant WH as /api/payments/razorpay/webhook
+  participant DB as Supabase
+  participant INV as Invoice Service
+
+  User->>FE: Submit donation details
+  FE->>CS: POST checkout payload
+  CS->>DB: Upsert donor + create pending donation
+  CS->>RP: Create order
+  RP-->>CS: order_id
+  CS->>DB: Save order_id + ledger/audit
+  CS-->>FE: checkout config
+  User->>RP: Complete payment
+  RP->>WH: Signed webhook event
+  WH->>DB: Verify + update donation status + ledger
+  WH->>INV: dispatchDonationInvoice(donationId)
+  INV->>DB: Read donation
+  INV-->>User: Email receipt (SMTP)

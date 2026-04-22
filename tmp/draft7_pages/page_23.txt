@@ -1,0 +1,17 @@
+Figure 5.2: Entity-Relationship (ER) Diagram
+
+
+
+
+  Figure 5.2: ER Diagram illustrating the five core entities of ImpactLedger and
+                               their relationships.
+
+The ER diagram defines the five primary entities: Users, Projects, Activities, Donations, and
+ImpactMetrics. Foreign key relationships enforce data integrity across collections. Each project can have
+multiple activities, donations, and impact records.
+
+
+
+
+                                                                                                     23
+

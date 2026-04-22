@@ -1,0 +1,17 @@
+        Figure 5.4: Sequence Diagram — Project Activity Logging Flow
+
+
+
+
+Figure 5.4: Sequence Diagram illustrating the message flow when an NGO Admin
+                     logs a field activity on ImpactLedger.
+
+The sequence diagram traces the complete interaction from the NGO Admin submitting an activity log
+form, through the React UI making a POST request to the Node.js API, to JWT validation, MongoDB
+insertion, and the success notification returned to the user.
+
+
+
+
+                                                                                               25
+

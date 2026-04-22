@@ -1,0 +1,46 @@
+flowchart LR
+  subgraph Public
+    HOME[/ /]
+    CAMPS[/campaigns/]
+    CAMPID[/campaigns/:id/]
+    DONATE[/donate/]
+    IMPACT[/impact/]
+    TRANSP[/transparency/]
+  end
+
+  subgraph Donor
+    D_HOME[/donor/]
+    D_DON[/donor/donations/]
+  end
+
+  subgraph Volunteer
+    V_HOME[/volunteer/]
+    V_ASG[/volunteer/assignments/]
+    V_LOG[/volunteer/logs/]
+    V_RES[/volunteer/resources/]
+    V_VER[/volunteer/verification/]
+  end
+
+  subgraph Admin
+    A_HOME[/admin/]
+    A_CAMP[/admin/campaigns/]
+    A_DON[/admin/donors/]
+    A_OPS[/admin/operations/]
+    A_REP[/admin/reports/]
+    A_ANA[/admin/analytics/]
+    A_SET[/admin/settings/]
+  end
+
+  subgraph API
+    PUB_API[/api/public/*, /api/campaigns, /api/transparency/]
+    DON_API[/api/donations*, /api/payments*/]
+    DONOR_API[/api/donor/*/]
+    VOL_API[/api/volunteer/*/]
+    ADM_API[/api/admin/*/]
+  end
+
+  HOME --> PUB_API
+  DONATE --> DON_API
+  D_HOME --> DONOR_API
+  V_HOME --> VOL_API
+  A_HOME --> ADM_API

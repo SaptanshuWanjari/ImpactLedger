@@ -1,0 +1,41 @@
+                                   CHAPTER 5
+                                SYSTEM DESIGN
+
+
+ImpactLedger follows a three-tier client-server architecture. The presentation layer
+consists of a React or Next.js-based frontend application that handles all user
+interactions and renders data visually. The application layer is a Node.js backend
+server that processes requests, enforces business rules, and manages communication
+with the database. The data layer uses MongoDB or Firebase for persistent storage
+of project records, user profiles, activity logs, and contribution data. Communication
+between the frontend and backend is handled through RESTful API endpoints,
+ensuring a clean separation of concerns and facilitating independent development
+and testing of each tier.
+
+
+The database design is structured around the core entities of the system. The
+primary collections include Users, Projects, Activities, Donations, and
+ImpactMetrics. Each project document contains references to associated activities
+and donations, allowing for efficient querying of project-level data. The Users
+collection stores role-based information, enabling the backend to enforce access
+permissions at the API level.
+
+
+The system design includes standard UML representations to model its behavior.
+The use-case diagram captures the interactions between NGO administrators,
+donors, and the system, covering actions such as project creation, activity logging,
+donation recording, and report generation. Sequence diagrams describe the flow of
+data during key operations such as user authentication and dashboard data retrieval,
+illustrating how requests pass from the frontend through the backend to the database
+and back.
+
+
+The user interface is designed with clarity and accessibility in mind. The dashboard
+presents key impact metrics using charts and summary cards, giving administrators
+a quick overview of project status. Data entry forms are structured and validated to
+prevent incorrect submissions. Navigation is kept simple and consistent across all
+pages to minimize the learning curve for new users.
+
+
+                                                                                     20
+

@@ -1,0 +1,35 @@
+ImpactLedger For NGO Funding
+         Analysis And Tracking
+                      Project Report submitted to
+                   Ramdeobaba University, Nagpur
+    in partial fulfillment of requirement for the award of degree of
+
+
+
+          Bachelor of Technology (B.Tech)
+                                   In
+
+COMPUTER SCIENCE AND ENGINEERING
+   (Artificial Intelligence and Cyber Security)
+                                  By
+                   Saptanshu Wanjari (41)
+                       Kamal Mann (62)
+                     Pranjal Chaubey (37)
+                     Gourang Daware (27)
+                        Nikhil Singh (55)
+                       Bharat Diwan (61)
+                                  Of
+                           IV Semester
+                                 Guide
+                   Prof. ABHINAY GUDADHE
+
+
+
+
+   Department of Artificial Intelligence and Cyber Security
+            Ramdeobaba University, Nagpur 440 013
+                              May 2026
+            RAMDEOBABA UNIVERSITY, NAGPUR
+Department of Artificial intelligence and Cyber Security
+                                                                       1
+

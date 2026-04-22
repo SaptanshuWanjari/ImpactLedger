@@ -1,0 +1,21 @@
+donors, beneficiaries, and administrators, have access to accurate and up-to-date
+information at all times.
+
+
+The core problem addressed by this project is the lack of structured transparency
+mechanisms in community initiatives, which results in mismanagement of
+resources, weakened donor relationships, and inefficient impact reporting.
+ImpactLedger aims to resolve this by providing a reliable digital ecosystem for
+NGO operations.
+
+
+The scope of the project covers the complete design and development of a web
+application with features for user authentication, project creation, activity tracking,
+donation recording, and data visualization. The system is intended for use by NGOs
+registered on the platform and their associated stakeholders.
+
+
+
+
+                                                                                      12
+

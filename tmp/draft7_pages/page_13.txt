@@ -1,0 +1,42 @@
+                                    CHAPTER 2
+                            COMMUNITY ANALYSIS
+
+
+The target community for ImpactLedger comprises four distinct groups: NGO
+administrators, field volunteers, donors, and beneficiaries. NGO administrators are
+responsible for planning and executing social initiatives, volunteers assist in ground-
+level implementation, donors provide financial and material support, and
+beneficiaries are the individuals or groups who directly receive services.
+Understanding the specific roles and interactions of these groups was essential for
+designing a platform that genuinely addresses their needs.
+
+
+Interactions with Lions Club Nagpur Sawaj, along with informal surveys and
+discussions with NGO coordinators and volunteers, revealed several operational
+challenges. Most organizations maintain records using physical ledgers or
+fragmented spreadsheets, which are prone to inconsistencies and difficult to audit.
+There is no single system through which all stakeholders can view project progress
+or verify the utilization of donated resources. This lack of a unified platform results
+in delayed reporting, reduced accountability, and declining donor participation.
+
+
+A web-based solution is well-suited to address these challenges. A digital platform
+can automate routine record-keeping, provide centralized access to project data, and
+offer real-time visibility into organizational activities. Unlike offline methods, a web
+application is accessible from any device with an internet connection, making it
+convenient for both urban and semi-urban users. It also enables systematic storage
+and retrieval of historical data, which is valuable for long-term impact assessment.
+
+
+The key stakeholders whose requirements shaped the design of ImpactLedger are
+NGO administrators, who need efficient tools for project creation and reporting;
+donors, who require transparent financial tracking and impact visibility; and
+beneficiaries, who benefit indirectly through better-managed service delivery. The
+system has been designed to serve each of these groups through a unified yet role-
+aware interface.
+
+
+
+
+                                                                                      13
+
