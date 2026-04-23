@@ -5,7 +5,7 @@ import { ADMIN_ALLOWED_ROLES, AuthHttpError, requireAuthContext } from "@/lib/se
 
 type ActionBody = {
   donationId?: string;
-  action?: "verify" | "send_receipt";
+  action?: "verify" | "send_receipt" | "decline";
 };
 
 function resolveReceiptUrl(donationId: string, origin: string) {
@@ -20,7 +20,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("donations")
-      .select("id,tenant_id,donor_name,donor_email,amount,currency,status,payment_method,payment_provider,donated_at,receipt_url,campaigns(title)")
+      .select("id,tenant_id,donor_name,donor_email,amount,currency,status,payment_method,payment_provider,donated_at,receipt_url,payment_screenshot_url,campaigns(title)")
       .eq("tenant_id", context.tenantId)
       .eq("payment_method", "GPay QR")
       .order("donated_at", { ascending: false })
@@ -42,6 +42,7 @@ export async function GET() {
         paymentProvider: row.payment_provider || "razorpay",
         donatedAt: row.donated_at,
         receiptUrl: row.receipt_url || null,
+        screenshotUrl: row.payment_screenshot_url || null,
         campaign: row.campaigns?.title || "General Fund",
       })),
     });
@@ -62,10 +63,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "donationId and action are required." }, { status: 400 });
     }
 
+    if (!(["verify", "send_receipt", "decline"] as const).includes(body.action as "verify" | "send_receipt" | "decline")) {
+      return NextResponse.json({ error: "Invalid action." }, { status: 400 });
+    }
+
     const supabase = createAdminClient() as any;
     const { data: donation, error: donationError } = await supabase
       .from("donations")
-      .select("id,tenant_id,donor_id,campaign_id,donor_email,amount,currency,status,payment_method,payment_provider,receipt_url")
+      .select("id,tenant_id,donor_id,campaign_id,donor_email,amount,currency,status,payment_method,payment_provider,receipt_url,payment_screenshot_url")
       .eq("tenant_id", context.tenantId)
       .eq("id", body.donationId)
       .single();
@@ -153,6 +158,43 @@ export async function POST(request: NextRequest) {
           receiptUrl: invoice.receiptUrl || receiptUrl,
         },
         invoice,
+      });
+    }
+
+    if (body.action === "decline") {
+      if (donation.status === "succeeded") {
+        return NextResponse.json({ error: "Cannot decline an already-verified donation." }, { status: 400 });
+      }
+
+      const { error: declineError } = await supabase
+        .from("donations")
+        .update({
+          status: "failed",
+          failure_reason: "Declined by admin: payment screenshot rejected.",
+        })
+        .eq("tenant_id", context.tenantId)
+        .eq("id", donation.id);
+
+      if (declineError) {
+        throw new Error(declineError.message);
+      }
+
+      await supabase.from("audit_logs").insert({
+        tenant_id: context.tenantId,
+        actor_user_id: context.user.id,
+        actor_email: context.email,
+        action: "donation_declined_manual",
+        target_type: "donation",
+        target_id: donation.id,
+        metadata: { payment_method: "GPay QR", reason: "admin_declined" },
+      });
+
+      return NextResponse.json({
+        donation: {
+          id: donation.id,
+          status: "failed",
+          receiptUrl: donation.receipt_url || null,
+        },
       });
     }
 

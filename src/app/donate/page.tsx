@@ -5,12 +5,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Check,
-  CheckCircle2,
   CreditCard,
-  HeartHandshake,
-  Lock,
+  ImagePlus,
   QrCode,
-  ShieldCheck,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -83,6 +81,17 @@ function DonatePageContent() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+
+  function handleScreenshotChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPaymentScreenshot(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setScreenshotPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  }
 
   const amountNumber = useMemo(() => {
     const fromCustom = customAmount ? Number(customAmount) : 0;
@@ -107,6 +116,11 @@ function DonatePageContent() {
       return;
     }
 
+    if (selectedMethod === "upi" && !paymentScreenshot) {
+      setResultMessage("Please upload a screenshot of your payment before submitting.");
+      return;
+    }
+
     setSubmitting(true);
     setResultMessage(null);
 
@@ -126,6 +140,19 @@ function DonatePageContent() {
       });
 
       if (response.manual) {
+        // Upload screenshot for GPay/UPI manual donations
+        if (paymentScreenshot && response.donationId) {
+          try {
+            const formData = new FormData();
+            formData.append("screenshot", paymentScreenshot);
+            await fetch(`/api/donations/${encodeURIComponent(response.donationId)}/screenshot`, {
+              method: "POST",
+              body: formData,
+            });
+          } catch {
+            // Non-critical: we still redirect even if upload fails
+          }
+        }
         window.location.href = `/donate/manual-success?donationId=${encodeURIComponent(response.donationId)}`;
         return;
       }
@@ -399,13 +426,69 @@ function DonatePageContent() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[220px_1fr]">
-                    <div className="rounded-xl bg-white p-3">
-                      <img src="/GPAY_QR.jpeg" alt="UPI QR" className="w-full rounded-lg object-cover" />
-                      <p className="mt-2 text-center text-xs font-semibold text-slate-600">Scan with any UPI app</p>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-[220px_1fr]">
+                      <div className="rounded-xl bg-white p-3">
+                        <img src="/GPAY_QR.jpeg" alt="UPI QR" className="w-full rounded-lg object-cover" />
+                        <p className="mt-2 text-center text-xs font-semibold text-slate-600">Scan with any UPI app</p>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-slate-900">Scan with any UPI App</h3>
+                        <p className="mt-2 text-sm text-slate-600">
+                          Open Google Pay, PhonePe, or any UPI app, scan the QR code, and complete the payment. Then
+                          upload a screenshot of the payment confirmation below.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-slate-900">Scan with any UPI App</h3>
+
+                    {/* Screenshot Upload */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Upload Payment Screenshot <span className="text-rose-500">*</span>
+                      </p>
+                      {screenshotPreview ? (
+                        <div className="relative rounded-xl border border-green-200 bg-green-50 p-3">
+                          <img
+                            src={screenshotPreview}
+                            alt="Payment screenshot preview"
+                            className="max-h-56 w-full rounded-lg object-contain"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPaymentScreenshot(null);
+                              setScreenshotPreview(null);
+                            }}
+                            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white shadow hover:bg-slate-100"
+                            aria-label="Remove screenshot"
+                          >
+                            <X size={14} className="text-slate-600" />
+                          </button>
+                          <p className="mt-2 text-center text-xs font-semibold text-green-700">
+                            ✓ Screenshot ready — {paymentScreenshot?.name}
+                          </p>
+                        </div>
+                      ) : (
+                        <label
+                          htmlFor="payment-screenshot"
+                          className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-[#0b4abf] hover:bg-[#eff5ff]"
+                        >
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                            <ImagePlus size={22} className="text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700">Click to upload payment screenshot</p>
+                            <p className="mt-0.5 text-xs text-slate-400">JPEG, PNG, WebP up to 5 MB</p>
+                          </div>
+                          <input
+                            id="payment-screenshot"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            className="sr-only"
+                            onChange={handleScreenshotChange}
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
                 )}

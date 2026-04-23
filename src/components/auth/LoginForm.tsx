@@ -16,7 +16,7 @@ export default function LoginForm() {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const nextPath = searchParams.get("next") || "/donor";
+  const nextPath = searchParams.get("next") ?? null;
 
   async function completeProvision() {
     const response = await fetch("/api/auth/provision", { method: "POST" });
@@ -43,7 +43,9 @@ export default function LoginForm() {
 
       const { homePath } = await completeProvision();
       await supabase.auth.refreshSession();
-      router.replace(nextPath.startsWith("/") ? nextPath : homePath);
+      // Use explicit `next` redirect if provided; otherwise use role-based homePath
+      const destination = nextPath && nextPath.startsWith("/") ? nextPath : homePath;
+      router.replace(destination);
     } catch (error) {
       setMessage((error as Error).message);
     } finally {

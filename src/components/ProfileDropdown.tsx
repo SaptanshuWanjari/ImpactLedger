@@ -34,18 +34,22 @@ const ProfileDropdown = ({ onLogout }: { onLogout?: () => void } = {}) => {
 
         setUserEmail(sessionData.session?.user?.email ?? null);
 
-        const { data: profileData, error: pErr } = await supabase
-          .from("users")
-          .select("name, role")
-          .eq("id", userId)
-          .single();
+        // Fetch name from `profiles` and role from `tenant_memberships` in parallel
+        const tenantId = process.env.NEXT_PUBLIC_DEFAULT_TENANT_ID;
+        const membershipQuery = tenantId
+          ? supabase.from("tenant_memberships").select("role").eq("user_id", userId).eq("tenant_id", tenantId).maybeSingle()
+          : supabase.from("tenant_memberships").select("role").eq("user_id", userId).maybeSingle();
 
-        if (pErr) {
-          console.warn("profile fetch error", pErr);
-        }
+        const [profileRes, membershipRes] = await Promise.all([
+          supabase.from("profiles").select("full_name").eq("id", userId).single(),
+          membershipQuery,
+        ]);
 
-        setFullName(profileData?.name ?? null);
-        setRole(profileData?.role ?? null);
+        if (profileRes.error) console.warn("profile fetch error", profileRes.error);
+        if (membershipRes.error) console.warn("membership fetch error", membershipRes.error);
+
+        setFullName(profileRes.data?.full_name ?? null);
+        setRole(membershipRes.data?.role ?? null);
       } finally {
         setLoading(false);
       }
@@ -135,7 +139,7 @@ const ProfileDropdown = ({ onLogout }: { onLogout?: () => void } = {}) => {
 
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="cursor-pointer px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors focus:bg-red-50 focus:text-red-700"
+          className="cursor-pointer px-4 py-3 text-red-600 hover:bg-red-400 hover:text-red-700 transition-colors focus:bg-red-400 focus:text-red-700"
         >
           <LogOut className="h-4 w-4 mr-3" />
           <span className="text-sm">Logout</span>

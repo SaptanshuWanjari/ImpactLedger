@@ -1,17 +1,0 @@
-      Figure 5.1: System Architecture Diagram (Three-Tier Client-Server Model)
-
-
-
-
-     Figure 5.1: Three-tier client-server architecture of ImpactLedger showing
-                    Presentation, Application, and Data layers.
-
-The architecture separates user interface, business logic, and data storage into three independent layers
-communicating through RESTful APIs over HTTPS. This separation improves maintainability and allows
-independent scaling of each tier.
-
-
-
-
-                                                                                                     21
-
